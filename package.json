@@ -1,0 +1,63 @@
+{
+  "name": "valcheck",
+  "description": "A JavaScript value checker for NodeJS",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Linkurious/valcheck.git"
+  },
+  "author": {
+    "name": "David Rapin",
+    "url": "https://github.com/davidrapin"
+  },
+  "contributors": [
+    {
+      "name": "Francesco Infante",
+      "url": "https://github.com/francescoinfante"
+    }
+  ],
+  "bugs": {
+    "url": "https://github.com/Linkurious/valcheck/issues"
+  },
+  "license": "MIT",
+  "version": "1.0.0",
+  "files": [
+    "src",
+    "index.js"
+  ],
+  "logo": "https://upload.wikimedia.org/wikipedia/en/a/a8/The_Wire_Valcheck.jpg",
+  "keywords": [
+    "validator",
+    "check",
+    "checker",
+    "value",
+    "validation"
+  ],
+  "private": false,
+  "engines": {
+    "node": "4.6.0"
+  },
+  "scripts": {
+    "//": "invoked using >npm run [script-name]",
+    "test": "mocha test",
+    "cover": "istanbul cover --root ./ -i '**/*.js' _mocha",
+    "doc": "jsdoc --configure .jsdoc.json",
+    "lint": "eslint ./src"
+  },
+  "dependencies": {
+    "lodash.difference": "4.4.0",
+    "lodash.intersection": "4.4.0",
+    "cron-parser": "2.3.0"
+  },
+  "devDependencies": {
+    "eslint": "3.9.1",
+    "eslint-plugin-import-order": "^2.1.4",
+    "ink-docstrap": "1.1.0",
+    "istanbul": "~1.1.0-alpha.1",
+    "jsdoc": "3.4.1",
+    "mocha": "3.0.2",
+    "should": "11.1.0"
+  }
+}
+
+
+
