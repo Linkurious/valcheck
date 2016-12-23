@@ -1,4 +1,4 @@
 'use strict';
 
-var Check = require('./src/Check');
-module.exports = Check;
+var Valcheck = require('./src/Valcheck');
+module.exports = Valcheck;
