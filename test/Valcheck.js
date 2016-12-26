@@ -889,15 +889,27 @@ describe('Valcheck ', function() {
     shouldFail(() => check.file('file', ''), '"file" must be a non-empty string.');
     shouldFail(
       () => check.file('file', './lolilol_not_a_file'),
-      '"file" must be an existing/readable file.'
+      '"file" must be an existing/readable file (./lolilol_not_a_file).'
     );
     shouldFail(
-      () => check.file('file', __dirname),
-      '"file" must be a file.'
+      () => check.file('file', __dirname), `"file" must be a file (${__dirname}).`
     );
-    shouldSucceed(() => check.file('dir', __filename));
+    shouldSucceed(() => check.file('file', __filename));
 
     done();
+  });
+
+  it('Should check directories', function() {
+    shouldFail(() => check.dir('dir', 123), '"dir" must be a string.');
+
+    shouldFail(
+      () => check.dir('dir', './lolilol_not_a_dir'),
+      '"dir" must be an existing/readable directory (./lolilol_not_a_dir).'
+    );
+    shouldFail(
+      () => check.dir('dir', __filename), `"dir" must be a directory (${__filename}).`
+    );
+    shouldSucceed(() => check.dir('dir', __dirname));
   });
 
   it('Should check date', function(done) {

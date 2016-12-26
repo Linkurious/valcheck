@@ -851,10 +851,32 @@ class Valcheck {
     try {
       stat = fs.statSync(value);
     } catch(e) {
-      return this._error(key, 'must be an existing/readable file');
+      return this._error(key, `must be an existing/readable file (${value})`);
     }
     if (!stat.isFile()) {
-      return this._error(key, 'must be a file');
+      return this._error(key, `must be a file (${value})`);
+    }
+  }
+
+  /**
+   * Check if `value` is a directory.
+   *
+   * @param {string} key
+   * @param {*} value
+   * @returns {*} error, if any
+   */
+  dir(key, value) {
+    var error;
+    if ((error = this.string(key, value, true))) { return error; }
+
+    var stat;
+    try {
+      stat = fs.statSync(value);
+    } catch(e) {
+      return this._error(key, `must be an existing/readable directory (${value})`);
+    }
+    if (!stat.isDirectory()) {
+      return this._error(key, `must be a directory (${value})`);
     }
   }
 
