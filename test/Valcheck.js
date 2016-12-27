@@ -6,17 +6,18 @@
 const should = require('should/as-function');
 const describe = require('mocha/lib/mocha.js').describe;
 const it = require('mocha/lib/mocha.js').it;
+const path = require('path');
 
 describe('Valcheck ', function() {
-  var Check = require('../src/Valcheck');
-  var check = new Check(error => error);
+  const Check = require('../src/Valcheck');
+  const check = new Check(error => error);
 
   /**
    * @param {function} fn
    * @param {string} errMessage The exact error message
    */
   function shouldFail(fn, errMessage) {
-    var er = fn();
+    const er = fn();
     //try { fn() } catch(e) { er = e; }
     should.exist(er, 'Expected an error message');
 
@@ -28,16 +29,15 @@ describe('Valcheck ', function() {
    * @param {function} fn
    */
   function shouldSucceed(fn) {
-    var er = fn();
+    const er = fn();
     //try { fn() } catch(e) { er = e; }
-
     should.not.exist(er);
   }
 
   it('Should throwing on error by default', function(done) {
-    var ex = {};
+    let ex = {};
     try {
-      var c = new Check();
+      const c = new Check();
       c.number('n', 'abc');
     } catch(e) {
       ex = e;
@@ -67,7 +67,7 @@ describe('Valcheck ', function() {
   });
 
   it('Should check numbers', function(done) {
-    var numberMsg = '"number" must be a number.';
+    const numberMsg = '"number" must be a number.';
     shouldFail(() => check.number('number', 'a'), numberMsg);
     shouldFail(() => check.number('number', undefined), numberMsg);
     shouldFail(() => check.number('number', null), numberMsg);
@@ -101,7 +101,7 @@ describe('Valcheck ', function() {
   });
 
   it('Should check positive integers', function(done) {
-    var numberMsg = '"posInt" must be a number.';
+    const numberMsg = '"posInt" must be a number.';
     shouldFail(() => check.posInt('posInt', 'a'), numberMsg);
     shouldFail(() => check.posInt('posInt', /a/), numberMsg);
     shouldFail(() => check.posInt('posInt', []), numberMsg);
@@ -129,7 +129,7 @@ describe('Valcheck ', function() {
   });
 
   it('Should check arrays', function(done) {
-    var msg = '"array" must be an array.';
+    const msg = '"array" must be an array.';
     shouldFail(() => check.array('array', 'a'), msg);
     shouldFail(() => check.array('array', undefined), msg);
     shouldFail(() => check.array('array', null), msg);
@@ -173,7 +173,7 @@ describe('Valcheck ', function() {
   });
 
   it('Should check strings', function(done) {
-    var msg = '"string" must be a string.';
+    const msg = '"string" must be a string.';
     shouldFail(() => check.string('string', null), msg);
     shouldFail(() => check.string('string', undefined), msg);
     shouldFail(() => check.string('string', 0), msg);
@@ -283,14 +283,14 @@ describe('Valcheck ', function() {
     shouldFail(() => check.hexColor('hex', new Date(123456)), '"hex" must be a string.');
 
     // wrong pattern (long or short)
-    var msg = '"hex" must be an hexadecimal color (e.g., #aa00f8 or #a1f).';
+    const msg = '"hex" must be an hexadecimal color (e.g., #aa00f8 or #a1f).';
     shouldFail(() => check.hexColor('hex', '123456'), msg);
     shouldFail(() => check.hexColor('hex', 'abcdef'), msg);
     shouldFail(() => check.hexColor('hex', '#12345g'), msg);
     shouldFail(() => check.hexColor('hex', '#ggg', true), msg);
 
     // wrong pattern (long only)
-    var msg2 = '"hex" must be an hexadecimal color (e.g., #aa00f8).';
+    const msg2 = '"hex" must be an hexadecimal color (e.g., #aa00f8).';
     shouldFail(() => check.hexColor('hex', '#ff', false), msg2);
     shouldFail(() => check.hexColor('hex', '#fff', false), msg2);
     shouldFail(() => check.hexColor('hex', '#ffff', false), msg2);
@@ -318,7 +318,7 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.rgbColor('color', 'rgba(0,0,0,0)'));
     shouldSucceed(() => check.rgbColor('color', 'rgba(1,1,1,1)'));
 
-    var msg = '"color" must be an rgb/rgba color ' +
+    const msg = '"color" must be an rgb/rgba color ' +
       '(e.g., "rgb(0, 170, 200)" or "rgba(255, 30, 255, 0.5)").';
 
     shouldFail(() => check.rgbColor('color', null), '"color" must be a string.');
@@ -369,7 +369,7 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.cssColor('color', '#999'));
     shouldSucceed(() => check.cssColor('color', '#999999'));
 
-    var msg = '"color" must be a CSS color ' +
+    const msg = '"color" must be a CSS color ' +
       '(e.g., "#ff0081", "rgb(0, 170, 10)" or "rgba(255, 30, 255, 0.5)").';
 
     shouldFail(() => check.cssColor('color', null), '"color" must be a string.');
@@ -403,7 +403,7 @@ describe('Valcheck ', function() {
   });
 
   it('Should check nulls', function(done) {
-    var msg = '"null" must be null.';
+    const msg = '"null" must be null.';
     shouldFail(() => check.null('null', undefined), msg);
     shouldFail(() => check.null('null', 'null'), msg);
     shouldFail(() => check.null('null', 0), msg);
@@ -416,7 +416,7 @@ describe('Valcheck ', function() {
   });
 
   it('Should check objects', function(done) {
-    var msg = '"object" must be an object.';
+    const msg = '"object" must be an object.';
     shouldFail(() => check.object('object', undefined), msg);
     shouldFail(() => check.object('object', null), msg);
     shouldFail(() => check.object('object', []), msg);
@@ -430,7 +430,7 @@ describe('Valcheck ', function() {
   });
 
   it('Should check stringArrays', function(done) {
-    var msg = '"sa" must be an array.';
+    const msg = '"sa" must be an array.';
     shouldFail(() => check.stringArray('sa', null), msg);
     shouldFail(() => check.stringArray('sa', undefined), msg);
     shouldFail(() => check.stringArray('sa', new RegExp('123')), msg);
@@ -496,7 +496,7 @@ describe('Valcheck ', function() {
   });
 
   it('Should check object keys', function(done) {
-    var objMsg = '"object" must be an object.';
+    const objMsg = '"object" must be an object.';
     shouldFail(() => check.objectKeys('object', [], []), objMsg);
     shouldFail(() => check.objectKeys('object', 1, []), objMsg);
     shouldFail(() => check.objectKeys('object', null, []), objMsg);
@@ -894,8 +894,12 @@ describe('Valcheck ', function() {
     shouldFail(
       () => check.file('file', __dirname), `"file" must be a file (${__dirname}).`
     );
+    shouldFail(
+      () => check.file('file', 'testFile.txt'),
+      '"file" must be an existing/readable file (testFile.txt).'
+    );
+    shouldSucceed(() => check.file('file', 'testFile.txt', path.resolve(__dirname, 'testDir')));
     shouldSucceed(() => check.file('file', __filename));
-
     done();
   });
 
@@ -910,6 +914,10 @@ describe('Valcheck ', function() {
       () => check.dir('dir', __filename), `"dir" must be a directory (${__filename}).`
     );
     shouldSucceed(() => check.dir('dir', __dirname));
+    shouldSucceed(() => check.dir('dir', 'testDir', __dirname));
+    shouldFail(
+      () => check.dir('dir', 'testDir'), `"dir" must be an existing/readable directory (testDir).`
+    );
   });
 
   it('Should check date', function(done) {

@@ -4,6 +4,7 @@
 'use strict';
 
 const fs = require('fs');
+const path = require('path');
 
 /**
  * @type {function(Array, Array):Array}
@@ -841,14 +842,18 @@ class Valcheck {
    *
    * @param {string} key
    * @param {*} value A file path
+   * @param {string} [rootPath] Will resolve `value` in `rootPath` instead of current working directory.
    * @returns {*} error, if any
    */
-  file(key, value) {
+  file(key, value, rootPath) {
     var error;
     if ((error = this.string(key, value, true))) { return error; }
 
     var stat;
     try {
+      if (rootPath) {
+        value = path.resolve(rootPath, value);
+      }
       stat = fs.statSync(value);
     } catch(e) {
       return this._error(key, `must be an existing/readable file (${value})`);
@@ -863,14 +868,18 @@ class Valcheck {
    *
    * @param {string} key
    * @param {*} value
+   * @param {string} [rootPath] Will resolve `value` in `rootPath` instead of current working directory.
    * @returns {*} error, if any
    */
-  dir(key, value) {
+  dir(key, value, rootPath) {
     var error;
     if ((error = this.string(key, value, true))) { return error; }
 
     var stat;
     try {
+      if (rootPath) {
+        value = path.resolve(rootPath, value);
+      }
       stat = fs.statSync(value);
     } catch(e) {
       return this._error(key, `must be an existing/readable directory (${value})`);
