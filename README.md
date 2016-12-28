@@ -1,4 +1,4 @@
-# Valcheck
+# Valcheck ![Valcheck npm version](https://img.shields.io/npm/v/valcheck.svg)
 A NodeJS value checker.
 
 # Development

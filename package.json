@@ -41,7 +41,8 @@
     "test": "mocha test",
     "cover": "istanbul cover --root ./ -i '**/*.js' _mocha",
     "doc": "jsdoc --configure .jsdoc.json",
-    "lint": "eslint ./src"
+    "lint": "eslint ./src",
+    "patch": "npm version patch && git push && npm publish"
   },
   "dependencies": {
     "lodash.difference": "4.4.0",

@@ -543,6 +543,19 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.properties('object', {foo: 1}, {foo: {required: true}}));
     shouldSucceed(() => check.properties('object', {}, {foo: {type: 'number'}}));
 
+    // requiredUnless
+    const props = {foo: {requiredUnless: 'bar'}, bar: {}};
+    shouldFail(
+      () => check.properties('object', {}, props), '"object.foo" must not be undefined.'
+    );
+    shouldFail(
+      () => check.properties('object', {bar: null}, props), '"object.foo" must not be undefined.'
+    );
+    shouldSucceed(() => check.properties('object', {foo: 'abc'}, props));
+    shouldSucceed(() => check.properties('object', {bar: 123}, props));
+    shouldSucceed(() => check.properties('object', {bar: false}, props));
+    shouldSucceed(() => check.properties('object', {foo: 'abc', bar: 123}, props));
+
     // property type
     shouldFail(
       () => check.properties('object', {foo: 1}, {foo: {type: 'string'}}),

@@ -28,6 +28,7 @@ const WS_URL_RE = /^(ws):\/\/([^/\s]+)(\/[^\s]*)?$/i;
 const DEFINITION_FIELDS = [
   'deprecated',
   'required',
+  'requiredUnless',
   'values',
   'type',
   'arrayItem', 'arraySize',
@@ -504,7 +505,7 @@ class Valcheck {
     var definedCount = 0;
     for (let i = 0, l = legalKeys.length, subKey = legalKeys[0]; i < l; subKey = legalKeys[++i]) {
       definedCount += this._notSet(value[subKey]) ? 0 : 1;
-      if ((error = this.property(`${key}.${subKey}`, value[subKey], properties[subKey]))) {
+      if ((error = this.property(`${key}.${subKey}`, value[subKey], properties[subKey], value))) {
         return error;
       }
     }
@@ -519,6 +520,7 @@ class Valcheck {
   /**
    * @typedef {object} FieldDefinition
    * @property {boolean|undefined} required Whether the property is required.
+   * @property {string|undefined} requiredUnless The property will be required unless another property called `requiredUnless` exists at the same level.
    * @property {string|undefined} deprecated Whether the property is deprecated (if defined), and for which reason.
    * @property {Array<*>|undefined} values List of allowed values for the property.
    * @property {string|string[]|undefined} type The allowed type(s) of the property.
@@ -537,9 +539,10 @@ class Valcheck {
    * @param {string} key
    * @param {*} value
    * @param {FieldDefinition} definition
+   * @param {object|array} [parent] Reference of parent object for `requiredUnless`.
    * @returns {*} error, if any
    */
-  property(key, value, definition) {
+  property(key, value, definition, parent) {
     var error;
 
     var illegalDefFields = _difference(Object.keys(definition), DEFINITION_FIELDS);
@@ -553,8 +556,18 @@ class Valcheck {
       return this._error(key, `is deprecated: ${definition.deprecated}`);
     }
 
+    let required = definition.required;
+
+    // make the value required if the property at parent[requiredUnless] is not set
+    if (definition.requiredUnless !== undefined) {
+      if (!parent) {
+        return this._bug('"definition.requiredUnless" required "parent" to be set');
+      }
+      required = this._notSet(parent[definition.requiredUnless]);
+    }
+
     // if "required", check if not null or undefined
-    if (definition.required === true) {
+    if (required === true) {
       if ((error = this.exist(key, value))) { return error; }
     } else if (this._notSet(value)) {
       // don't validate non-required missing properties further
@@ -608,7 +621,9 @@ class Valcheck {
       if ((error = this.type(key, value, 'object'))) { return error; }
       var keys = Object.keys(value);
       for (let i = 0, l = keys.length, subKey = keys[0]; i < l; subKey = keys[++i]) {
-        if ((error = this.property(`${key}.${subKey}`, value[subKey], definition.anyProperty))) {
+        if (
+          (error = this.property(`${key}.${subKey}`, value[subKey], definition.anyProperty, value))
+        ) {
           return error;
         }
       }
@@ -631,7 +646,7 @@ class Valcheck {
 
       if ((error = this.type(key, value, 'array'))) { return error; }
       for (let i = 0, l = value.length, item = value[0]; i < l; item = value[++i]) {
-        if ((error = this.property(`${key}[${i}]`, value[i], definition.arrayItem))) {
+        if ((error = this.property(`${key}[${i}]`, value[i], definition.arrayItem, value))) {
           return error;
         }
       }
