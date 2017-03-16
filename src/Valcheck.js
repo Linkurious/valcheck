@@ -24,7 +24,7 @@ const RGB_COLOR_RE = /^rgb\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*\)$/i;
 const RGBA_COLOR_RE = /^rgba\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*(?:0|1|0?\.\d+)\s*\)$/i;
 const URL_RE = /^([a-zA-Z]{2,8}):\/\/([^/\s]+)(\/[^\s]*)?$/i;
 const HTTP_URL_RE = /^(https?):\/\/([^/\s]+)(\/[^\s]*)?$/i;
-const WS_URL_RE = /^(ws):\/\/([^/\s]+)(\/[^\s]*)?$/i;
+const WS_URL_RE = /^(wss?):\/\/([^/\s]+)(\/[^\s]*)?$/i;
 const DEFINITION_FIELDS = [
   'deprecated',
   'required',
