@@ -908,11 +908,14 @@ class Valcheck {
    * If value is a Date, check if valid.
    *
    * @param {string} key
-   * @param {Date} value
+   * @param {*} value
+   * @param {boolean} [ISOString=false] whether to fail if the value is a date in the ISO-8601 format.
    *
    * @returns {*} error, if any
    */
-  date(key, value) {
+  date(key, value, ISOString) {
+    if (ISOString && new Date(value).toISOString() === value) { return; }
+
     if (!(value instanceof Date) || !isFinite(value.getTime())) {
       return this._error(key, 'must be a valid date');
     }

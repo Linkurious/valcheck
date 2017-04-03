@@ -937,12 +937,14 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.date('date', new Date()));
     shouldSucceed(() => check.date('date', new Date(0)));
     shouldSucceed(() => check.date('date', new Date('2016-06-09T12:14:25.078Z')));
+    shouldSucceed(() => check.date('date', '2016-06-09T12:14:25.078Z', true));
 
     shouldFail(() => check.date('date', undefined), '"date" must be a valid date.');
     shouldFail(() => check.date('date', null), '"date" must be a valid date.');
     shouldFail(() => check.date('date', ''), '"date" must be a valid date.');
     shouldFail(() => check.date('date', 1), '"date" must be a valid date.');
     shouldFail(() => check.date('date', new Date('')), '"date" must be a valid date.');
+    shouldFail(() => check.date('date', '2016-06-09T12:14:25.078Z'), '"date" must be a valid date.');
 
     done();
   });
