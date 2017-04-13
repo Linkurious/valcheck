@@ -16,8 +16,6 @@ const _difference = require('lodash.difference');
  */
 const _intersection = require('lodash.intersection');
 
-const CronParser = require('cron-parser');
-
 const HEX6_COLOR_RE = /^#[a-fA-F0-9]{6}$/;
 const HEX3_COLOR_RE = /^#[a-fA-F0-9]{3}$/;
 const RGB_COLOR_RE = /^rgb\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*\)$/i;
@@ -918,25 +916,6 @@ class Valcheck {
 
     if (!(value instanceof Date) || !isFinite(value.getTime())) {
       return this._error(key, 'must be a valid date');
-    }
-  }
-
-  /**
-   * Check if the value is a valid CRON expression.
-   *
-   * @param {string} key
-   * @param {string} value
-   *
-   * @returns {*} error, if any
-   */
-  cronExpression(key, value) {
-    var error;
-    if ((error = this.string(key, value, true, false, 1, 50))) { return error; }
-
-    try {
-      CronParser.parseExpression(value);
-    } catch(e) {
-      return this._error(key, 'must be a valid cron');
     }
   }
 }

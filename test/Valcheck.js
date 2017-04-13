@@ -949,19 +949,4 @@ describe('Valcheck ', function() {
     done();
   });
 
-  it('Should check cron', function(done) {
-    shouldSucceed(() => check.cronExpression('cron', '0,20,40 8-17 * * 1-5'));
-    shouldSucceed(() => check.cronExpression('cron', '0 * * * 0,6'));
-    shouldSucceed(() => check.cronExpression('cron', '0 7-18 * * 1-5'));
-    shouldSucceed(() => check.cronExpression('cron', '5 18 * * 1-5'));
-
-    shouldFail(() => check.cronExpression('cron', null), '"cron" must be a string.');
-    shouldFail(() => check.cronExpression('cron', undefined), '"cron" must be a string.');
-    shouldFail(() => check.cronExpression('cron', 123), '"cron" must be a string.');
-    shouldFail(() => check.cronExpression('cron', '123'), '"cron" must be a valid cron.');
-    shouldFail(() => check.cronExpression('cron', '70 * * * *'), '"cron" must be a valid cron.');
-    shouldFail(() => check.cronExpression('cron', '0 24 * * *'), '"cron" must be a valid cron.');
-
-    done();
-  });
 });
