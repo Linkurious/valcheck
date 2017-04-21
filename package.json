@@ -34,7 +34,7 @@
   ],
   "private": false,
   "engines": {
-    "node": "4.6.0"
+    "node": ">=4.6.0"
   },
   "scripts": {
     "//": "invoked using >npm run [script-name]",
