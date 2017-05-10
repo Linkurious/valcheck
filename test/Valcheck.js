@@ -350,6 +350,9 @@ describe('Valcheck ', function() {
   });
 
   it('Should check CSS colors', done => {
+    shouldSucceed(() => check.cssColor('color', 'yellow'));
+    shouldSucceed(() => check.cssColor('color', 'red'));
+    shouldSucceed(() => check.cssColor('color', 'green'));
     shouldSucceed(() => check.cssColor('color', 'rgb(0,0,0)'));
     shouldSucceed(() => check.cssColor('color', 'rgb( 0 , 0 , 0 )'));
     shouldSucceed(() => check.cssColor('color', 'rgb( 0 , 0 , 0 )'));
@@ -373,7 +376,7 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.cssColor('color', '#999999'));
 
     const msg = '"color" must be a CSS color ' +
-      '(e.g., "#ff0081", "rgb(0, 170, 10)" or "rgba(255, 30, 255, 0.5)").';
+      '(e.g., "#ff0081", "rgb(0, 170, 10)", "rgba(255, 30, 255, 0.5)" or "red").';
 
     shouldFail(() => check.cssColor('color', null), '"color" must be a string.');
     shouldFail(() => check.cssColor('color', ''), '"color" must be a non-empty string.');
