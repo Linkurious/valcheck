@@ -163,6 +163,9 @@ describe('Valcheck ', function() {
     shouldFail(() => check.values('enum', 'a', ['b', 'c']), '"enum" must be one of: "b", "c".'
     );
     shouldFail(() => check.values('enum', 1, ['1', '2']), '"enum" must be one of: "1", "2".');
+    shouldFail(() => check.values('enum', 1, ['1', '2'], true),
+      '"enum" must be one of: "1", "2" (was 1).'
+    );
 
     shouldSucceed(() => check.values('enum', 'b', ['a', 'b']));
     shouldSucceed(() => check.values('enum', 2, [1, 2]));
