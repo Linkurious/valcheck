@@ -559,10 +559,10 @@ describe('Valcheck ', function() {
     // requiredIf
     props = {foo: {requiredIf: 'bar'}, bar: {}};
     shouldFail(
-        () => check.properties('object', {bar: 'abc'}, props), '"object.foo" must not be undefined.'
+      () => check.properties('object', {bar: 'abc'}, props), '"object.foo" must not be undefined.'
     );
     shouldFail(
-        () => check.properties('object', {bar: 123}, props), '"object.foo" must not be undefined.'
+      () => check.properties('object', {bar: 123}, props), '"object.foo" must not be undefined.'
     );
     shouldSucceed(() => check.properties('object', {}, props));
     shouldSucceed(() => check.properties('object', {bar: null}, props));
