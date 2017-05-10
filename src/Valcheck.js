@@ -262,7 +262,7 @@ class Valcheck {
     if (RGBA_COLOR_RE.test(value)) { return; }
 
     return this._error(
-      key, 'must be a CSS color (e.g., "#ff0081", "rgb(0, 170, 10)" or "rgba(255, 30, 255, 0.5)")'
+      key, 'must be a CSS color (e.g., "#ff0081", "rgb(0, 170, 10)", "rgba(255, 30, 255, 0.5)") or "red"'
     );
   }
 
