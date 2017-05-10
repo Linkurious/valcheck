@@ -347,6 +347,9 @@ describe('Valcheck ', function() {
   });
 
   it('Should check CSS colors', done => {
+    shouldSucceed(() => check.cssColor('color', 'yellow'));
+    shouldSucceed(() => check.cssColor('color', 'red'));
+    shouldSucceed(() => check.cssColor('color', 'green'));
     shouldSucceed(() => check.cssColor('color', 'rgb(0,0,0)'));
     shouldSucceed(() => check.cssColor('color', 'rgb( 0 , 0 , 0 )'));
     shouldSucceed(() => check.cssColor('color', 'rgb( 0 , 0 , 0 )'));
