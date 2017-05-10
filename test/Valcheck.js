@@ -544,7 +544,7 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.properties('object', {}, {foo: {type: 'number'}}));
 
     // requiredUnless
-    const props = {foo: {requiredUnless: 'bar'}, bar: {}};
+    let props = {foo: {requiredUnless: 'bar'}, bar: {}};
     shouldFail(
       () => check.properties('object', {}, props), '"object.foo" must not be undefined.'
     );
@@ -554,6 +554,19 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.properties('object', {foo: 'abc'}, props));
     shouldSucceed(() => check.properties('object', {bar: 123}, props));
     shouldSucceed(() => check.properties('object', {bar: false}, props));
+    shouldSucceed(() => check.properties('object', {foo: 'abc', bar: 123}, props));
+
+    // requiredIf
+    props = {foo: {requiredIf: 'bar'}, bar: {}};
+    shouldFail(
+        () => check.properties('object', {bar: 'abc'}, props), '"object.foo" must not be undefined.'
+    );
+    shouldFail(
+        () => check.properties('object', {bar: 123}, props), '"object.foo" must not be undefined.'
+    );
+    shouldSucceed(() => check.properties('object', {}, props));
+    shouldSucceed(() => check.properties('object', {bar: null}, props));
+    shouldSucceed(() => check.properties('object', {foo: 'abc'}, props));
     shouldSucceed(() => check.properties('object', {foo: 'abc', bar: 123}, props));
 
     // property type

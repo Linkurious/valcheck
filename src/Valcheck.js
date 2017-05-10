@@ -27,6 +27,7 @@ const DEFINITION_FIELDS = [
   'deprecated',
   'required',
   'requiredUnless',
+  'requiredIf',
   'values',
   'type',
   'arrayItem', 'arraySize',
@@ -519,6 +520,7 @@ class Valcheck {
    * @typedef {object} FieldDefinition
    * @property {boolean|undefined} required Whether the property is required.
    * @property {string|undefined} requiredUnless The property will be required unless another property called `requiredUnless` exists at the same level.
+   * @property {string|undefined} requiredIf The property will be required if another property called `requiredIf` exists at the same level.
    * @property {string|undefined} deprecated Whether the property is deprecated (if defined), and for which reason.
    * @property {Array<*>|undefined} values List of allowed values for the property.
    * @property {string|string[]|undefined} type The allowed type(s) of the property.
@@ -537,7 +539,7 @@ class Valcheck {
    * @param {string} key
    * @param {*} value
    * @param {FieldDefinition} definition
-   * @param {object|array} [parent] Reference of parent object for `requiredUnless`.
+   * @param {object|array} [parent] Reference of parent object for `requiredUnless` and `requiredIf`.
    * @returns {*} error, if any
    */
   property(key, value, definition, parent) {
@@ -562,6 +564,14 @@ class Valcheck {
         return this._bug('"definition.requiredUnless" required "parent" to be set');
       }
       required = this._notSet(parent[definition.requiredUnless]);
+    }
+
+    // make the value required if the property at parent[requiredIf] is set
+    if (definition.requiredIf !== undefined) {
+      if (!parent) {
+        return this._bug('"definition.requiredIf" required "parent" to be set');
+      }
+      required = !this._notSet(parent[definition.requiredIf]);
     }
 
     // if "required", check if not null or undefined
