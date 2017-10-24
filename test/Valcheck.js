@@ -873,21 +873,31 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.httpUrl('url', 'http://google.com'));
     shouldSucceed(() => check.httpUrl('url', 'https://google.com'));
     shouldSucceed(() => check.httpUrl('url', 'http://localhost:7474'));
-    shouldSucceed(() => check.url('url', 'http://google.com', 'https?'));
-    shouldSucceed(() => check.url('url', 'https://google.com', 'https?'));
+    shouldSucceed(() => check.url('url', 'Http://google.com', 'http'));
+    shouldSucceed(() => check.url('url', 'Https://google.com', 'http'));
     shouldSucceed(() => check.url('url', 'ws://google.com', 'ws'));
+    shouldSucceed(() => check.url('url', 'wss://google.com', 'ws'));
     shouldSucceed(() => check.url('url', 'ws://127.0.0.1', 'ws'));
     shouldSucceed(() => check.url('url', 'ws://127.0.0.1:8182', 'ws'));
     shouldSucceed(() => check.url('url', 'ws://localhost', 'ws'));
     shouldSucceed(() => check.url('url', 'mailto://la_maman_de_jean@hotmail.fr', 'mailto'));
+    shouldSucceed(() => check.url('url', 'MailTo://la_maman_de_jean@hotmail.fr', 'mailto'));
+    shouldSucceed(() => check.url('url', 'git+ssh://github.com/linkurious/server.git', 'git+ssh'));
+    shouldSucceed(() => check.url('url', 'bolt+routing://github.com/bla.git'));
+    shouldSucceed(() => check.url('url', 'Bolt+routing://10.5.6.77:7474', 'bolt+routing'));
 
     shouldFail(() => check.url('url', 'http://goog le.com/lol.html'), '"url" must be a valid URL.');
     shouldFail(() => check.url('url', null), '"url" must be a string.');
     shouldFail(() => check.url('url', ''), '"url" must be a non-empty string.');
     shouldFail(() => check.url('url', '123'), '"url" must be a valid URL.');
     shouldFail(
+      () => check.url('url', 'Boltt+routing://10.5.6.77:7474', 'bolt+routing'),
+      '"url" must be a valid URL (starting with bolt+routing://).'
+    );
+
+    shouldFail(
       () => check.url('url', 'http://google.fr', 'ws'),
-      '"url" must be a valid URL (starting with ws://).'
+      '"url" must be a valid URL (starting with ws(s)://).'
     );
     shouldFail(
       () => check.url('url', 'ftp://free.fr', 'pifpaf'),
@@ -895,7 +905,11 @@ describe('Valcheck ', function() {
     );
     shouldFail(
       () => check.httpUrl('url', 'ftp://free.fr'),
-      '"url" must be a valid URL (starting with https?://).'
+      '"url" must be a valid URL (starting with http(s)://).'
+    );
+    shouldFail(
+      () => check.url('url', 'http://free.fr', 'ws'),
+      '"url" must be a valid URL (starting with ws(s)://).'
     );
 
     done();

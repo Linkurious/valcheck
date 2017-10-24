@@ -20,7 +20,7 @@ const HEX6_COLOR_RE = /^#[a-fA-F0-9]{6}$/;
 const HEX3_COLOR_RE = /^#[a-fA-F0-9]{3}$/;
 const RGB_COLOR_RE = /^rgb\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*\)$/i;
 const RGBA_COLOR_RE = /^rgba\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*(?:0|1|0?\.\d+)\s*\)$/i;
-const URL_RE = /^([a-zA-Z]{2,8}):\/\/([^/\s]+)(\/[^\s]*)?$/i;
+const URL_RE = /^([a-zA-Z]{2,8}(?:\+[a-zA-Z]{2,8})?):\/\/([^/\s]+)(\/[^\s]*)?$/i;
 const HTTP_URL_RE = /^(https?):\/\/([^/\s]+)(\/[^\s]*)?$/i;
 const WS_URL_RE = /^(wss?):\/\/([^/\s]+)(\/[^\s]*)?$/i;
 const DEFINITION_FIELDS = [
@@ -719,12 +719,14 @@ class Valcheck {
     var re;
     if (scheme === undefined) {
       re = URL_RE;
-    } else if (scheme === 'https?') {
+    } else if (scheme === 'http') { // allows https
+      scheme = 'http(s)';
       re = HTTP_URL_RE;
-    } else if (scheme === 'ws') {
+    } else if (scheme === 'ws') { // allows wss
+      scheme = 'ws(s)';
       re = WS_URL_RE;
     } else {
-      re = new RegExp(`^${scheme}://([^/\\s]+)(/[^\\s]*)?$`);
+      re = new RegExp(`^${this._escapeRegExp(scheme)}://([^/\\s]+)(/[^\\s]*)?$`, 'i');
     }
 
     if (!re.test(value)) {
@@ -741,7 +743,7 @@ class Valcheck {
    * @return {*} error, if any
    */
   httpUrl(key, value) {
-    return this.url(key, value, 'https?');
+    return this.url(key, value, 'http');
   }
 
   /**
@@ -952,6 +954,17 @@ class Valcheck {
     if (!(value instanceof Date) || !isFinite(value.getTime())) {
       return this._error(key, 'must be a valid date');
     }
+  }
+
+  /**
+   * Escapes a string for sage usage in a regular expression
+   *
+   * @param {string} str
+   * @return {string}
+   * @private
+   */
+  _escapeRegExp(str) {
+    return str.replace(/[\-\[\]\/{}()*+?.\\^$|]/g, "\\$&");
   }
 }
 
