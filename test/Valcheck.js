@@ -528,6 +528,11 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.objectKeys('object', {a: 1, b: 2}, ['a', 'b'], ['a']));
     shouldSucceed(() => check.objectKeys('object', {a: 1, b: 2}, ['a', 'b'], true));
 
+    shouldSucceed(() => check.objectKeys('object', {a: 1}, null, null, ['']));
+    shouldFail(() => check.objectKeys('object', {'': 1}, null, null, ['']),
+      '"object" has forbidden properties ("").'
+    );
+
     done();
   });
 
