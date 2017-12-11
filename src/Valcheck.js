@@ -479,18 +479,21 @@ class Valcheck {
    *
    * @param {string} key object key.
    * @param {object} object object to check.
-   * @param {string[]} acceptedKeys array of properties keys that are authorized on `object`.
+   * @param {string[]} [acceptedKeys] array of properties keys that are authorized on `object`.
    * @param {string[]|boolean} [mandatoryKeys] Array of property keys that are mandatory on `object` (or `true` if all accepted keys are mandatory).
+   * @param {string[]} [forbiddenKeys] Array of property keys that are forbidden on `object`.
    * @returns {*} error, if any
    */
-  objectKeys(key, object, acceptedKeys, mandatoryKeys) {
+  objectKeys(key, object, acceptedKeys, mandatoryKeys, forbiddenKeys) {
     var error;
     if ((error = this.object(key, object))) { return error; }
 
     var objectKeys = Object.keys(object);
-    var unauthorized = _difference(objectKeys, acceptedKeys);
-    if (unauthorized.length > 0) {
-      return this._error(key, `has unexpected properties (${this._array2string(unauthorized)})`);
+    if (acceptedKeys) {
+      var unauthorized = _difference(objectKeys, acceptedKeys);
+      if (unauthorized.length > 0) {
+        return this._error(key, `has unexpected properties (${this._array2string(unauthorized)})`);
+      }
     }
     if (mandatoryKeys) {
       if (mandatoryKeys === true) {
@@ -499,6 +502,12 @@ class Valcheck {
       var missing = _difference(mandatoryKeys, objectKeys);
       if (missing.length > 0) {
         return this._error(key, `misses mandatory properties (${this._array2string(missing)})`);
+      }
+    }
+    if (forbiddenKeys) {
+      var present = _intersection(forbiddenKeys, objectKeys);
+      if (present.length > 0) {
+        return this._error(key, `has forbidden properties (${this._array2string(present)})`);
       }
     }
   }
