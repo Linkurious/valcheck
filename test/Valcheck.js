@@ -306,6 +306,8 @@ describe('Valcheck ', function() {
 
   it('Should check rgb/rgba colors', done => {
     shouldSucceed(() => check.rgbColor('color', 'rgb(0,0,0)'));
+    shouldSucceed(() => check.rgbColor('color', 'rgb(255,22,0)'));
+    shouldSucceed(() => check.rgbColor('color', 'rgb(255,255,255)'));
     shouldSucceed(() => check.rgbColor('color', 'rgb( 0 , 0 , 0 )'));
     shouldSucceed(() => check.rgbColor('color', 'rgb( 0 , 0 , 0 )'));
     shouldSucceed(() => check.rgbColor('color', 'rgba( 0 , 0 , 0, 0)'));
@@ -331,9 +333,17 @@ describe('Valcheck ', function() {
     shouldFail(() => check.rgbColor('color', 'rgb(123)'), msg);
     shouldFail(() => check.rgbColor('color', 'rgb(1,2)'), msg);
     shouldFail(() => check.rgbColor('color', 'rgb(1,2,)'), msg);
+    shouldFail(() => check.rgbColor('color', ' rgb(1,1,1)'), msg);
+    shouldFail(() => check.rgbColor('color', 'rgb(1,1,1,0)'), msg);
+    shouldFail(() => check.rgbColor('color', 'rgb(256,255,255)'), msg);
+    shouldFail(() => check.rgbColor('color', 'rgb(255,256,255)'), msg);
+    shouldFail(() => check.rgbColor('color', 'rgb(255,255,256)'), msg);
     shouldFail(() => check.rgbColor('color', 'rgba(1,1,1)'), msg);
     shouldFail(() => check.rgbColor('color', 'rgba(1,1,1,.)'), msg);
     shouldFail(() => check.rgbColor('color', 'rgba(1,1,1,)'), msg);
+    shouldFail(() => check.rgbColor('color', 'rgba(256,255,255, 0.5)'), msg);
+    shouldFail(() => check.rgbColor('color', 'rgba(255,256,255, 0.5)'), msg);
+    shouldFail(() => check.rgbColor('color', 'rgba(255,255,256, 0.5)'), msg);
     shouldFail(() => check.rgbColor('color', 'rgba(1,1,1,2)'), msg);
     shouldFail(() => check.rgbColor('color', 'rgba(1,1,1,3)'), msg);
     shouldFail(() => check.rgbColor('color', 'rgba(1,1,1,9)'), msg);
@@ -341,8 +351,6 @@ describe('Valcheck ', function() {
     shouldFail(() => check.rgbColor('color', 'rgba(1,1,1,0.)'), msg);
     shouldFail(() => check.rgbColor('color', 'rgba(1,1,1,)'), msg);
     shouldFail(() => check.rgbColor('color', 'rgba(1,1,1,0) '), msg);
-    shouldFail(() => check.rgbColor('color', 'rgb(1,1,1,0)'), msg);
-    shouldFail(() => check.rgbColor('color', ' rgb(1,1,1)'), msg);
     shouldFail(() => check.rgbColor('color', 'rgba( 0 , 0 , 0, 1.0)'), msg);
     shouldFail(() => check.rgbColor('color', 'rgba( 0 , 0 , 0, 1.9)'), msg);
     shouldFail(() => check.rgbColor('color', 'rgba( 0 , 0 , 0, 99.0)'), msg);
