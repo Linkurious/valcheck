@@ -9,7 +9,7 @@ const it = require('mocha/lib/mocha.js').it;
 const path = require('path');
 
 describe('Valcheck ', function() {
-  const Check = require('../src/Valcheck');
+  const Check = require('../build/Valcheck').default;
   const check = new Check(error => error);
 
   /**

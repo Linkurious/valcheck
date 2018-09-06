@@ -3,22 +3,31 @@
  */
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
+let fs: { statSync(file: string): { isFile(): boolean, isDirectory(): boolean } };
+let path: { resolve(p1: string, p2: string): string };
+// @ts-ignore
+if (process) {
+  // @ts-ignore
+  fs = require('fs');
+  // @ts-ignore
+  path = require('path');
+}
 
 /**
  * @type {function(Array, Array):Array}
  */
-const _difference = require('lodash.difference');
+import difference = require('lodash.difference');
 
 /**
  * @type {function(Array, Array):Array}
  */
-const _intersection = require('lodash.intersection');
+import intersection = require('lodash.intersection');
 
 const HEX6_COLOR_RE = /^#[a-fA-F0-9]{6}$/;
 const HEX3_COLOR_RE = /^#[a-fA-F0-9]{3}$/;
+// tslint:disable-next-line:max-line-length
 const RGB_COLOR_RE = /^rgb\(\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*,\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*,\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*\)$/i;
+// tslint:disable-next-line:max-line-length
 const RGBA_COLOR_RE = /^rgba\(\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*,\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*,\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*,\s*(?:0|1|0?\.\d+)\s*\)$/i;
 const URL_RE = /^([a-zA-Z]{2,8}(?:\+[a-zA-Z]{2,8})?):\/\/([^/\s]+)(\/[^\s]*)?$/i;
 const HTTP_URL_RE = /^(https?):\/\/([^/\s]+)(\/[^\s]*)?$/i;
@@ -50,45 +59,87 @@ const DEFINITION_FIELDS = [
  * @param {string} the library usage error message
  */
 
-const TYPE_ARTICLE = {
-  'null': '',
-  'undefined': '',
-  'NaN': '',
-  'array': 'an ',
-  'object': 'an ',
-  'boolean': 'a ',
-  'number': 'a ',
-  'string': 'a ',
-  'function': 'a '
+const TYPE_ARTICLE: {[key: string]: string} = {
+  null: '',
+  undefined: '',
+  NaN: '',
+  array: 'an ',
+  object: 'an ',
+  boolean: 'a ',
+  number: 'a ',
+  string: 'a ',
+  function: 'a '
 };
 
 const CSS_COLORS = [
-  'aliceblue','antiquewhite','aqua','aquamarine','azure','beige','bisque','black', 'blanchedalmond',
-  'blue','blueviolet','brown','burlywood','cadetblue','chartreuse','chocolate','coral',
-  'cornflowerblue','cornsilk','crimson','cyan','darkblue','darkcyan','darkgoldenrod','darkgray',
-  'darkgreen','darkgrey','darkkhaki','darkmagenta','darkolivegreen','darkorange','darkorchid',
-  'darkred','darksalmon','darkseagreen','darkslateblue','darkslategray','darkslategrey',
-  'darkturquoise','darkviolet','deeppink','deepskyblue','dimgray','dimgrey','dodgerblue',
-  'firebrick','floralwhite','forestgreen','fuchsia','gainsboro','ghostwhite','gold','goldenrod',
-  'gray','green','greenyellow','grey','honeydew','hotpink','indianred','indigo','ivory','khaki',
-  'lavender','lavenderblush','lawngreen','lemonchiffon','lightblue','lightcoral','lightcyan',
-  'lightgoldenrodyellow','lightgray','lightgreen','lightgrey','lightpink','lightsalmon',
-  'lightseagreen','lightskyblue','lightslategray','lightslategrey','lightsteelblue','lightyellow',
-  'lime','limegreen','linen','magenta','maroon','mediumaquamarine','mediumblue','mediumorchid',
-  'mediumpurple','mediumseagreen','mediumslateblue','mediumspringgreen','mediumturquoise',
-  'mediumvioletred','midnightblue','mintcream','mistyrose','moccasin','navajowhite','navy',
-  'oldlace','olive','olivedrab','orange','orangered','orchid','palegoldenrod','palegreen',
-  'paleturquoise','palevioletred','papayawhip','peachpuff','peru','pink','plum','powderblue',
-  'purple','red','rosybrown','royalblue','saddlebrown','salmon','sandybrown','seagreen','seashell',
-  'sienna','silver','skyblue','slateblue','slategray','slategrey','snow','springgreen','steelblue',
-  'tan','teal','thistle','tomato','turquoise','violet','wheat','white','whitesmoke','yellow',
+  'aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure', 'beige', 'bisque', 'black', 'blanchedalmond',
+  'blue', 'blueviolet', 'brown', 'burlywood', 'cadetblue', 'chartreuse', 'chocolate', 'coral',
+  'cornflowerblue', 'cornsilk', 'crimson', 'cyan', 'darkblue', 'darkcyan', 'darkgoldenrod', 'darkgray',
+  'darkgreen', 'darkgrey', 'darkkhaki', 'darkmagenta', 'darkolivegreen', 'darkorange', 'darkorchid',
+  'darkred', 'darksalmon', 'darkseagreen', 'darkslateblue', 'darkslategray', 'darkslategrey',
+  'darkturquoise', 'darkviolet', 'deeppink', 'deepskyblue', 'dimgray', 'dimgrey', 'dodgerblue',
+  'firebrick', 'floralwhite', 'forestgreen', 'fuchsia', 'gainsboro', 'ghostwhite', 'gold', 'goldenrod',
+  'gray', 'green', 'greenyellow', 'grey', 'honeydew', 'hotpink', 'indianred', 'indigo', 'ivory', 'khaki',
+  'lavender', 'lavenderblush', 'lawngreen', 'lemonchiffon', 'lightblue', 'lightcoral', 'lightcyan',
+  'lightgoldenrodyellow', 'lightgray', 'lightgreen', 'lightgrey', 'lightpink', 'lightsalmon',
+  'lightseagreen', 'lightskyblue', 'lightslategray', 'lightslategrey', 'lightsteelblue', 'lightyellow',
+  'lime', 'limegreen', 'linen', 'magenta', 'maroon', 'mediumaquamarine', 'mediumblue', 'mediumorchid',
+  'mediumpurple', 'mediumseagreen', 'mediumslateblue', 'mediumspringgreen', 'mediumturquoise',
+  'mediumvioletred', 'midnightblue', 'mintcream', 'mistyrose', 'moccasin', 'navajowhite', 'navy',
+  'oldlace', 'olive', 'olivedrab', 'orange', 'orangered', 'orchid', 'palegoldenrod', 'palegreen',
+  'paleturquoise', 'palevioletred', 'papayawhip', 'peachpuff', 'peru', 'pink', 'plum', 'powderblue',
+  'purple', 'red', 'rosybrown', 'royalblue', 'saddlebrown', 'salmon', 'sandybrown', 'seagreen', 'seashell',
+  'sienna', 'silver', 'skyblue', 'slateblue', 'slategray', 'slategrey', 'snow', 'springgreen', 'steelblue',
+  'tan', 'teal', 'thistle', 'tomato', 'turquoise', 'violet', 'wheat', 'white', 'whitesmoke', 'yellow',
   'yellowgreen'
 ];
+
+export type Type = 'null' | 'undefined' | 'array' | 'object' | 'number' | 'NaN' | 'boolean' | 'string' | 'function';
+
+export type FieldPolicy = 'strict' | 'strictExist' | 'inclusive';
+
+/**
+ * @typedef {object} FieldDefinition
+ * @property {boolean|undefined} required Whether the property is required.
+ * @property {string|undefined} requiredUnless The property will be required unless another property called `requiredUnless` exists at the same level.
+ * @property {string|undefined} requiredIf The property will be required if another property called `requiredIf` exists at the same level.
+ * @property {string|undefined} deprecated Whether the property is deprecated (if defined), and for which reason.
+ * @property {Array<*>|undefined} values List of allowed values for the property.
+ * @property {string|string[]|undefined} type The allowed type(s) of the property.
+ * @property {function|string|Array<*>|undefined} check Called with `value` and `key` for specific property validation.
+ * @property {FieldDefinition|undefined} arrayItem Validate array items (forces `type` to "array").
+ * @property {number|undefined} arraySize Validate array size (forces `type` to "array").
+ * @property {FieldDefinition|undefined} anyProperty Validate any nested properties (forces `type` to "object").
+ * @property {object.<string, FieldDefinition>|undefined} properties Validate listed nested properties (forces `type` to "object").
+ * @property {string|undefined} policy When using `properties`, whether the properties are:
+ *                                                - "strict" (default): Only described properties are allowed.
+ *                                                - "strictExist": Only described properties are allowed, at least one must be present.
+ *                                                - "inclusive": Non-described properties are allowed.
+ */
+export interface FieldDefinition<E> {
+  required?: boolean;
+  requiredUnless?: string;
+  requiredIf?: string;
+  deprecated?: string;
+  values: Array<unknown>;
+  type?: string | string[];
+  check?: (key: string, value: unknown) => (E | void) | (keyof Valcheck<E>) | string[];
+  arrayItem?: FieldDefinition<E>;
+  arraySize?: number;
+  anyProperty?: FieldDefinition<E>;
+  properties?: {
+    [key: string]: FieldDefinition<E>;
+  };
+  policy?: FieldPolicy;
+}
 
 /**
  * @class Valcheck
  */
-class Valcheck {
+export default class Valcheck<E> {
+
+  public bugHandler: (error: string) => E;
+  public errorHandler: (error: string) => E;
 
   /**
    * A validator.
@@ -104,15 +155,21 @@ class Valcheck {
    * @param {function(string):*} errorHandler a function that must handle check-error message
    * @param {function(string):*} bugHandler a function that  must handle code-bug message
    */
-  constructor(errorHandler, bugHandler) {
-    if (!errorHandler) { errorHandler = this.DEFAULT_ERROR_HANDLER; }
-    this.errorHandler = errorHandler;
+  constructor(errorHandler?: (error: string) => E, bugHandler?: (error: string) => E) {
+    if (errorHandler !== undefined) {
+      this.errorHandler = errorHandler;
+    } else {
+      this.errorHandler = this.DEFAULT_ERROR_HANDLER;
+    }
 
-    if (!bugHandler) { bugHandler = errorHandler; }
-    this.bugHandler = bugHandler;
+    if (bugHandler !== undefined) {
+      this.bugHandler = bugHandler;
+    } else {
+      this.bugHandler = this.errorHandler;
+    }
   }
 
-  DEFAULT_ERROR_HANDLER(message) {
+  private DEFAULT_ERROR_HANDLER(message: string): E {
     throw new Error(message);
   }
 
@@ -124,7 +181,7 @@ class Valcheck {
    * @return {*} a truthy value in case of error.
    * @private
    */
-  _error(key, message) {
+  public _error(key: string, message: string): E | void {
     return this.errorHandler(`"${key}" ${message}.`);
   }
 
@@ -135,7 +192,7 @@ class Valcheck {
    * @returns {*} a truthy value in case of bug.
    * @private
    */
-  _bug(message) {
+  public _bug(message: string): E | void {
     return this.bugHandler('Library usage error: ' + message + '.');
   }
 
@@ -146,7 +203,7 @@ class Valcheck {
    * @param {*} value tested value
    * @returns {*} error, if any
    */
-  nonEmpty(key, value) {
+  public nonEmpty(key: string, value: unknown): E | void {
     return this.string(key, value, true);
   }
 
@@ -161,17 +218,24 @@ class Valcheck {
    * @param {number} [maxSize]
    * @returns {*} error, if any
    */
-  string(key, value, nonEmpty, noSpace, minSize, maxSize) {
-    var error;
+  public string(
+    key: string,
+    value: unknown,
+    nonEmpty: boolean = false,
+    noSpace: boolean = false,
+    minSize?: number,
+    maxSize?: number
+  ): E | void {
+    let error;
     if ((error = this.type(key, value, 'string'))) { return error; }
 
     if (nonEmpty && value === '') {
       return this._error(key, 'must be a non-empty string');
     }
-    if (noSpace && value.indexOf(' ') > -1) {
+    if (noSpace && (value as string).indexOf(' ') > -1) {
       return this._error(key, 'must not contain spaces');
     }
-    if ((error = this._checkInterval(key, value.length, 'length must be', minSize, maxSize))) {
+    if ((error = this._checkInterval(key, (value as string).length, 'length must be', minSize, maxSize))) {
       return error;
     }
   }
@@ -185,14 +249,14 @@ class Valcheck {
    * @param {boolean} [needSuffix=true] Whether the value must be longer than the given prefix.
    * @returns {*} error, if any
    */
-  startsWith(key, value, prefix, needSuffix) {
-    var error;
+  public startsWith(key: string, value: unknown, prefix: string, needSuffix: boolean = true): E | void {
+    let error;
     if ((error = this.string(key, value))) { return error; }
 
-    if (value.indexOf(prefix) !== 0) {
+    if ((value as string).indexOf(prefix) !== 0) {
       return this._error(key, `must start with "${prefix}"`);
     }
-    if (needSuffix !== false && value.length <= prefix.length) {
+    if (needSuffix !== false && (value as string).length <= prefix.length) {
       return this._error(key, `must be longer than "${prefix}"`);
     }
   }
@@ -205,15 +269,15 @@ class Valcheck {
    * @param {boolean} [allowShort=true] Whether to allow short hex colors (#ABC)
    * @returns {*} error, if any
    */
-  hexColor(key, value, allowShort) {
+  public hexColor(key: string, value: unknown, allowShort: boolean = true): E | void {
     allowShort = allowShort === undefined ? true : allowShort;
 
-    var error;
+    let error;
     if ((error = this.string(key, value, true))) { return error; }
 
-    if (HEX6_COLOR_RE.test(value)) { return; }
+    if (HEX6_COLOR_RE.test(value as string)) { return; }
 
-    if (allowShort && HEX3_COLOR_RE.test(value)) { return; }
+    if (allowShort && HEX3_COLOR_RE.test(value as string)) { return; }
 
     return this._error(
       key, `must be an hexadecimal color (e.g., ${allowShort ? '#aa00f8 or #a1f' : '#aa00f8'})`
@@ -227,13 +291,13 @@ class Valcheck {
    * @param {*} value
    * @returns {*} error, if any
    */
-  rgbColor(key, value) {
-    var error;
+  public rgbColor(key: string, value: unknown): E | void {
+    let error;
     if ((error = this.string(key, value, true))) { return error; }
 
-    if (RGB_COLOR_RE.test(value)) { return; }
+    if (RGB_COLOR_RE.test(value as string)) { return; }
 
-    if (RGBA_COLOR_RE.test(value)) { return; }
+    if (RGBA_COLOR_RE.test(value as string)) { return; }
 
     return this._error(
       key, 'must be an rgb/rgba color (e.g., "rgb(0, 170, 200)" or "rgba(255, 30, 255, 0.5)")'
@@ -247,19 +311,19 @@ class Valcheck {
    * @param {*} value
    * @returns {*} error, if any
    */
-  cssColor(key, value) {
-    var error;
+  public cssColor(key: string, value: unknown): E | void {
+    let error;
     if ((error = this.string(key, value, true))) { return error; }
 
-    if (CSS_COLORS.indexOf(value) >= 0) { return; }
+    if (CSS_COLORS.indexOf(value as string) >= 0) { return; }
 
-    if (HEX6_COLOR_RE.test(value)) { return; }
+    if (HEX6_COLOR_RE.test(value as string)) { return; }
 
-    if (HEX3_COLOR_RE.test(value)) { return; }
+    if (HEX3_COLOR_RE.test(value as string)) { return; }
 
-    if (RGB_COLOR_RE.test(value)) { return; }
+    if (RGB_COLOR_RE.test(value as string)) { return; }
 
-    if (RGBA_COLOR_RE.test(value)) { return; }
+    if (RGBA_COLOR_RE.test(value as string)) { return; }
 
     return this._error(
       key, 'must be a CSS color (e.g., "#ff0081", "rgb(0, 170, 10)", "rgba(255, 30, 255, 0.5)" or "red")'
@@ -273,7 +337,7 @@ class Valcheck {
    * @param {*} value tested value
    * @returns {*} error, if any
    */
-  exist(key, value) {
+  public exist(key: string, value: unknown): E | void {
     if (value === undefined) {
       return this._error(key, 'must not be undefined');
     }
@@ -289,7 +353,7 @@ class Valcheck {
    * @param {*} value
    * @returns {*} error, if any
    */
-  'null'(key, value) {
+  public 'null'(key: string, value: unknown): E | void {
     if (value !== null) {
       return this._error(key, 'must be null');
     }
@@ -302,7 +366,7 @@ class Valcheck {
    * @param {*} value tested value
    * @returns {*} error, if any
    */
-  object(key, value) {
+  public object(key: string, value: unknown): E | void {
     return this.type(key, value, 'object');
   }
 
@@ -315,11 +379,11 @@ class Valcheck {
    * @param {number} [maxLength]
    * @returns {*} error, if any
    */
-  array(key, value, minLength, maxLength) {
-    var error;
+  public array(key: string, value: unknown, minLength?: number, maxLength?: number): E | void {
+    let error;
     if ((error = this.type(key, value, 'array'))) { return error; }
 
-    if ((error = this._checkInterval(key, value.length, 'length must be', minLength, maxLength))) {
+    if ((error = this._checkInterval(key, (value as Array<unknown>).length, 'length must be', minLength, maxLength))) {
       return error;
     }
   }
@@ -335,7 +399,7 @@ class Valcheck {
    * @returns {*} error, if any
    * @private
    */
-  _checkInterval(key, value, errorPrefix, min, max) {
+  public _checkInterval(key: string, value: number, errorPrefix: string, min?: number, max?: number): E | void {
     if (
       min !== undefined && max !== undefined &&
       min !== -Infinity && max !== Infinity &&
@@ -361,7 +425,7 @@ class Valcheck {
    * @param {string} key value key
    * @param {*} value tested value
    */
-  posInt(key, value) {
+  public posInt(key: string, value: unknown): E | void {
     return this.integer(key, value, 0);
   }
 
@@ -374,11 +438,11 @@ class Valcheck {
    * @param {number} [maxSize]
    * @returns {*} error, if any
    */
-  intArray(key, value, minSize, maxSize) {
-    var error;
+  public intArray(key: string, value: unknown, minSize?: number, maxSize?: number): E | void {
+    let error;
     if ((error = this.array(key, value, minSize, maxSize))) { return error; }
-    for (var i = 0, len = value.length ; i < len ; i++) {
-      if ((error = this.integer(key + '[' + i + ']', value[i]))) { return error; }
+    for (let i = 0, len = (value as Array<unknown>).length ; i < len ; i++) {
+      if ((error = this.integer(key + '[' + i + ']', (value as Array<unknown>)[i]))) { return error; }
     }
   }
 
@@ -392,11 +456,13 @@ class Valcheck {
    * @param {boolean} [nonEmpty=false] check that no string in the array is empty
    * @returns {*} error, if any
    */
-  stringArray(key, value, minSize, maxSize, nonEmpty) {
-    var error;
+  public stringArray(
+    key: string, value: unknown, minSize?: number, maxSize?: number, nonEmpty: boolean = false
+  ): E | void {
+    let error;
     if ((error = this.array(key, value, minSize, maxSize))) { return error; }
-    for (var i = 0, len = value.length ; i < len ; i++) {
-      if ((error = this.string(key + '[' + i + ']', value[i], nonEmpty))) { return error; }
+    for (let i = 0, len = (value as Array<unknown>).length ; i < len ; i++) {
+      if ((error = this.string(key + '[' + i + ']', (value as Array<unknown>)[i], nonEmpty))) { return error; }
     }
   }
 
@@ -409,10 +475,10 @@ class Valcheck {
    * @param {number} [maxValue=+Infinity] the maximum accepted value
    * @returns {*} error, if any
    */
-  integer(key, value, minValue, maxValue) {
-    var error;
+  public integer(key: string, value: unknown, minValue: number = -Infinity, maxValue: number = +Infinity): E | void {
+    let error;
     if ((error = this.number(key, value, minValue, maxValue))) { return error; }
-    if (!Number.isInteger(value)) {
+    if (!Valcheck._isInt(value as number)) {
       return this._error(key, 'must be an integer');
     }
   }
@@ -426,15 +492,15 @@ class Valcheck {
    * @param {number} [maxValue=+Infinity] Maximum accepted value
    * @returns {*} error, if any
    */
-  number(key, value, minValue, maxValue) {
-    var error;
+  public number(key: string, value: unknown, minValue: number = -Infinity, maxValue: number = +Infinity): E | void {
+    let error;
     if ((error = this.type(key, value, 'number'))) { return error; }
 
     // isFinite: checks for NaN, +Infinity and -Infinity
-    if (!isFinite(value)) {
+    if (!isFinite(value as number)) {
       return this._error(key, 'must be a finite number');
     }
-    if ((error = this._checkInterval(key, value, 'must be', minValue, maxValue))) { return error; }
+    if ((error = this._checkInterval(key, value as number, 'must be', minValue, maxValue))) { return error; }
   }
 
   /**
@@ -446,22 +512,22 @@ class Valcheck {
    * @param {boolean} [showInvalidValue=false] whether to display the invalid value in case of error
    * @returns {*} error, if any
    */
-  values(key, value, legalValues, showInvalidValue) {
+  public values(key: string, value: unknown, legalValues: Array<unknown>, showInvalidValue: boolean = false): E | void {
     if (!Array.isArray(legalValues) || legalValues.length === 0) {
       return this._bug('values must be a non-empty array');
     }
     for (let i = 0; i < legalValues.length; ++i) {
       if (value === legalValues[i]) { return; }
       // check if value is NaN itself
-      if (Number.isNaN(value) && Number.isNaN(legalValues[i])) { return; }
+      if (Valcheck._isNaN(value) && Valcheck._isNaN(legalValues[i])) { return; }
     }
-    var suffix = '';
+    let suffix = '';
     if (showInvalidValue) {
       suffix = ` (was ${JSON.stringify(value)})`;
     }
     return this._error(key, legalValues.length > 1
-      ? `must be one of: ${this._array2string(legalValues)}${suffix}`
-      : `must be ${this._array2string(legalValues)}${suffix}`
+      ? `must be one of: ${Valcheck._array2string(legalValues)}${suffix}`
+      : `must be ${Valcheck._array2string(legalValues)}${suffix}`
     );
   }
 
@@ -470,8 +536,8 @@ class Valcheck {
    * @returns {string}
    * @private
    */
-  _array2string(list) {
-    return list.map(v => v === undefined ? 'undefined' : global.JSON.stringify(v)).join(', ');
+  private static _array2string(list: Array<unknown>): string {
+    return list.map(v => v === undefined ? 'undefined' : JSON.stringify(v)).join(', ');
   }
 
   /**
@@ -484,30 +550,36 @@ class Valcheck {
    * @param {string[]} [forbiddenKeys] Array of property keys that are forbidden on `object`.
    * @returns {*} error, if any
    */
-  objectKeys(key, object, acceptedKeys, mandatoryKeys, forbiddenKeys) {
-    var error;
+  public objectKeys(
+    key: string,
+    object: object,
+    acceptedKeys?: string[],
+    mandatoryKeys?: string[] | boolean,
+    forbiddenKeys?: string[]
+  ): E | void {
+    let error;
     if ((error = this.object(key, object))) { return error; }
 
-    var objectKeys = Object.keys(object);
+    const objectKeys = Object.keys(object);
     if (acceptedKeys) {
-      var unauthorized = _difference(objectKeys, acceptedKeys);
+      const unauthorized = difference(objectKeys, acceptedKeys);
       if (unauthorized.length > 0) {
-        return this._error(key, `has unexpected properties (${this._array2string(unauthorized)})`);
+        return this._error(key, `has unexpected properties (${Valcheck._array2string(unauthorized)})`);
       }
     }
     if (mandatoryKeys) {
       if (mandatoryKeys === true) {
         mandatoryKeys = acceptedKeys;
       }
-      var missing = _difference(mandatoryKeys, objectKeys);
+      const missing = difference(mandatoryKeys, objectKeys);
       if (missing.length > 0) {
-        return this._error(key, `misses mandatory properties (${this._array2string(missing)})`);
+        return this._error(key, `misses mandatory properties (${Valcheck._array2string(missing)})`);
       }
     }
     if (forbiddenKeys) {
-      var present = _intersection(forbiddenKeys, objectKeys);
+      const present = intersection(forbiddenKeys, objectKeys);
       if (present.length > 0) {
-        return this._error(key, `has forbidden properties (${this._array2string(present)})`);
+        return this._error(key, `has forbidden properties (${Valcheck._array2string(present)})`);
       }
     }
   }
@@ -521,23 +593,27 @@ class Valcheck {
    * @param {string} [policy="strict"] "strict", "strictExist" or "inclusive".
    * @returns {*} error, if any
    */
-  properties(key, value, properties, policy) {
-    var error;
+  public properties(
+    key: string, value: object, properties: {[key: string]: FieldDefinition<E>}, policy: FieldPolicy = 'strict'
+  ): E | void {
+    let error;
     if ((error = this.object(key, value))) { return error; }
 
-    var legalKeys = Object.keys(properties);
+    const legalKeys = Object.keys(properties);
     if (policy === undefined) { policy = 'strict'; }
 
     if (policy === 'strict') {
-      var unauthorized = _difference(Object.keys(value), legalKeys);
+      const unauthorized = difference(Object.keys(value), legalKeys);
       if (unauthorized.length > 0) {
-        return this._error(key, `has unexpected properties (${this._array2string(unauthorized)})`);
+        return this._error(key, `has unexpected properties (${Valcheck._array2string(unauthorized)})`);
       }
     }
 
-    var definedCount = 0;
+    let definedCount = 0;
     for (let i = 0, l = legalKeys.length, subKey = legalKeys[0]; i < l; subKey = legalKeys[++i]) {
-      definedCount += this._notSet(value[subKey]) ? 0 : 1;
+      // @ts-ignore generic object read
+      definedCount += Valcheck._notSet(value[subKey]) ? 0 : 1;
+      // @ts-ignore generic object read
       if ((error = this.property(`${key}.${subKey}`, value[subKey], properties[subKey], value))) {
         return error;
       }
@@ -545,29 +621,10 @@ class Valcheck {
 
     if (policy === 'strictExist' && definedCount === 0) {
       return this._error(key,
-        `must have at least one of these properties defined (${this._array2string(legalKeys)})`
+        `must have at least one of these properties defined (${Valcheck._array2string(legalKeys)})`
       );
     }
   }
-
-  /**
-   * @typedef {object} FieldDefinition
-   * @property {boolean|undefined} required Whether the property is required.
-   * @property {string|undefined} requiredUnless The property will be required unless another property called `requiredUnless` exists at the same level.
-   * @property {string|undefined} requiredIf The property will be required if another property called `requiredIf` exists at the same level.
-   * @property {string|undefined} deprecated Whether the property is deprecated (if defined), and for which reason.
-   * @property {Array<*>|undefined} values List of allowed values for the property.
-   * @property {string|string[]|undefined} type The allowed type(s) of the property.
-   * @property {function|string|Array<*>|undefined} check Called with `value` and `key` for specific property validation.
-   * @property {FieldDefinition|undefined} arrayItem Validate array items (forces `type` to "array").
-   * @property {number|undefined} arraySize Validate array size (forces `type` to "array").
-   * @property {FieldDefinition|undefined} anyProperty Validate any nested properties (forces `type` to "object").
-   * @property {object.<string, FieldDefinition>|undefined} properties Validate listed nested properties (forces `type` to "object").
-   * @property {string|undefined} policy When using `properties`, whether the properties are:
-   *                                                - "strict" (default): Only described properties are allowed.
-   *                                                - "strictExist": Only described properties are allowed, at least one must be present.
-   *                                                - "inclusive": Non-described properties are allowed.
-   */
 
   /**
    * @param {string} key
@@ -576,13 +633,13 @@ class Valcheck {
    * @param {object|array} [parent] Reference of parent object for `requiredUnless` and `requiredIf`.
    * @returns {*} error, if any
    */
-  property(key, value, definition, parent) {
-    var error;
+  public property(key: string, value: object, definition: FieldDefinition<E>, parent?: object): E | void {
+    let error;
 
-    var illegalDefFields = _difference(Object.keys(definition), DEFINITION_FIELDS);
+    const illegalDefFields = difference(Object.keys(definition), DEFINITION_FIELDS);
     if (illegalDefFields.length) {
       return this._bug(
-        '"definition" has unexpected properties: ' + this._array2string(illegalDefFields)
+        '"definition" has unexpected properties: ' + Valcheck._array2string(illegalDefFields)
       );
     }
 
@@ -597,7 +654,8 @@ class Valcheck {
       if (!parent) {
         return this._bug('"definition.requiredUnless" required "parent" to be set');
       }
-      required = this._notSet(parent[definition.requiredUnless]);
+      // @ts-ignore generic object read
+      required = Valcheck._notSet(parent[definition.requiredUnless]);
     }
 
     // make the value required if the property at parent[requiredIf] is set
@@ -605,13 +663,14 @@ class Valcheck {
       if (!parent) {
         return this._bug('"definition.requiredIf" required "parent" to be set');
       }
-      required = !this._notSet(parent[definition.requiredIf]);
+      // @ts-ignore generic object read
+      required = !Valcheck._notSet(parent[definition.requiredIf]);
     }
 
     // if "required", check if not null or undefined
     if (required === true) {
       if ((error = this.exist(key, value))) { return error; }
-    } else if (this._notSet(value)) {
+    } else if (Valcheck._notSet(value)) {
       // don't validate non-required missing properties further
       return;
     }
@@ -623,22 +682,26 @@ class Valcheck {
 
     // if "check" function exists, run specific check function
     if (definition.check) {
-      var t = this.getType(definition.check);
+      const t = this.getType(definition.check);
 
       if (t === 'array' || t === 'string') {
+        // @ts-ignore make "check" an array
         if (t === 'string') { definition.check = [definition.check]; }
 
-        // "check" is an array of [functionName, arguments...] where functionName exists for Check
-        var fName = definition.check.length ? definition.check[0] : undefined;
+        // @ts-ignore "check" is an array of [functionName, arguments...] where functionName exists for Check
+        const fName = definition.check.length ? definition.check[0] : undefined;
         if (typeof fName !== 'string') {
           return this._bug('"definition.check[0]" must be a function name');
+          // @ts-ignore
         } else if (typeof this[fName] !== 'function') {
           return this._bug(`"definition.check[0]" (${fName}) must be a valid Check function name`);
         }
-        var args = [key, value].concat(definition.check.slice(1));
+        // @ts-ignore "check" is an array, the first entry is a function name, the rest is parameters
+        const args = [key, value].concat(definition.check.slice(1));
+        // @ts-ignore calling
         if ((error = this[fName].apply(this, args))) { return error; }
       } else if (t === 'function') {
-        // "check" is a function that takes (key, value) as parameters and
+        // @ts-ignore "check" is a function that takes (key, value) as parameters
         if ((error = definition.check(key, value))) { return error; }
       } else {
         return this._bug('"definition.check" must be an array or a function');
@@ -661,9 +724,10 @@ class Valcheck {
     // if "anyProperty" is defined, check if propertyValue is an object an validate any properties
     if (definition.anyProperty) {
       if ((error = this.type(key, value, 'object'))) { return error; }
-      var keys = Object.keys(value);
+      const keys = Object.keys(value);
       for (let i = 0, l = keys.length, subKey = keys[0]; i < l; subKey = keys[++i]) {
         if (
+          // @ts-ignore generic object read
           (error = this.property(`${key}.${subKey}`, value[subKey], definition.anyProperty, value))
         ) {
           return error;
@@ -687,13 +751,15 @@ class Valcheck {
       }
 
       if ((error = this.type(key, value, 'array'))) { return error; }
+      // @ts-ignore using value as an array
       for (let i = 0, l = value.length, item = value[0]; i < l; item = value[++i]) {
+        // @ts-ignore using value as an array
         if ((error = this.property(`${key}[${i}]`, value[i], definition.arrayItem, value))) {
           return error;
         }
       }
       // type has been checked already, we can stop here
-      //return;
+      // return;
     }
   }
 
@@ -705,10 +771,10 @@ class Valcheck {
    * @param {RegExp} regexp
    * @returns {*} error, if any
    */
-  regexp(key, value, regexp) {
-    var error;
+  public regexp(key: string, value: unknown, regexp: RegExp): E | void {
+    let error;
     if ((error = this.string(key, value))) { return error; }
-    if (regexp.test(value)) { return; }
+    if (regexp.test(value as string)) { return; }
 
     return this._error(key, `must match pattern ${regexp.toString()}`);
   }
@@ -721,11 +787,11 @@ class Valcheck {
    * @param {string} [scheme]
    * @return {*} error, if any
    */
-  url(key, value, scheme) {
-    var err;
+  public url(key: string, value: unknown, scheme?: string): E | void {
+    let err;
     if ((err = this.nonEmpty(key, value))) { return err; }
 
-    var re;
+    let re;
     if (scheme === undefined) {
       re = URL_RE;
     } else if (scheme === 'http') { // allows https
@@ -735,11 +801,11 @@ class Valcheck {
       scheme = 'ws(s)';
       re = WS_URL_RE;
     } else {
-      re = new RegExp(`^${this._escapeRegExp(scheme)}://([^/\\s]+)(/[^\\s]*)?$`, 'i');
+      re = new RegExp(`^${Valcheck._escapeRegExp(scheme)}://([^/\\s]+)(/[^\\s]*)?$`, 'i');
     }
 
-    if (!re.test(value)) {
-      var sScheme = scheme ? ` (starting with ${scheme}://)` : '';
+    if (!re.test(value as string)) {
+      const sScheme = scheme ? ` (starting with ${scheme}://)` : '';
       return this._error(key, 'must be a valid URL' + sScheme);
     }
   }
@@ -751,7 +817,7 @@ class Valcheck {
    * @param {*} value
    * @return {*} error, if any
    */
-  httpUrl(key, value) {
+  public httpUrl(key: string, value: unknown): E | void {
     return this.url(key, value, 'http');
   }
 
@@ -762,7 +828,7 @@ class Valcheck {
    * @param {*} value
    * @returns {*} error, if any
    */
-  port(key, value) {
+  public port(key: string, value: unknown): E | void {
     return this.integer(key, value, 11, 65535);
   }
 
@@ -774,20 +840,20 @@ class Valcheck {
    * @param {string|string[]} type Allowed type(s) (use "null" type for null values).
    * @returns {*} error, if any
    */
-  type(key, value, type) {
-    var valueType = this.getType(value);
+  public type(key: string, value: unknown, type: string | string[]): E | void {
+    const valueType: Type = this.getType(value);
     type = this._itemOrList(type, []);
     if (type.length === 0) {
       return this._bug('check.type: type array must have at least one type');
     }
-    var found = false;
+    let found = false;
     for (let i = 0; i < type.length && !found; ++i) {
       found = type[i] === valueType;
       if (found) { break; }
     }
     if (!found) {
       return this._error(key, type.length > 1
-        ? `type must be one of: ${this._array2string(type)}`
+        ? `type must be one of: ${Valcheck._array2string(type)}`
         : `must be ${TYPE_ARTICLE[type[0]]}${type[0]}`
       );
     }
@@ -800,27 +866,27 @@ class Valcheck {
    * @param {*} value
    * @returns {string} "null", "undefined", "array", "object", "number", "NaN", "boolean", "string", "function".
    */
-  getType(value) {
+  public getType(value: unknown): Type {
     if (value === null) { return 'null'; }
     if (Array.isArray(value)) { return 'array'; }
     if (value !== value) { return 'NaN'; }
-    return typeof value;
+    return (typeof value) as Type;
   }
 
   /**
    * Convert an (item or list of items) into a (list of items).
    *
    * @param {*|Array<*>|null|undefined} item
-   * @param {Array<*>} [defaultValue] Alternative return value if item is null or undefined.
+   * @param {Array<*>} defaultValue Alternative return value if item is null or undefined.
    * @returns {Array<*>|null|undefined}
    * @private
    */
-  _itemOrList(item, defaultValue) {
-    if (this._notSet(item) && defaultValue !== undefined) {
+  public _itemOrList <T>(item: T | T[] | null | undefined, defaultValue: T[]): T[] {
+    if (Valcheck._notSet(item) && defaultValue !== undefined) {
       item = defaultValue;
     }
     if (!Array.isArray(item)) {
-      return [item];
+      return ([item]) as T[];
     }
     return item;
   }
@@ -830,7 +896,7 @@ class Valcheck {
    * @returns {boolean} true if v is null or undefined
    * @private
    */
-  _notSet(v) {
+  private static _notSet(v: unknown): boolean {
     return v === undefined || v === null;
   }
 
@@ -843,8 +909,8 @@ class Valcheck {
    * @param {boolean} [wantedValue] exact required value for `value`.
    * @returns {*} error, if any
    */
-  boolean(key, value, optional, wantedValue) {
-    var error;
+  public boolean(key: string, value: unknown, optional: boolean = false, wantedValue?: boolean): E | void {
+    let error;
     if ((error = this.type(key, value, optional ? ['boolean', 'undefined'] : 'boolean'))) {
       return error;
     }
@@ -862,26 +928,28 @@ class Valcheck {
    * @param {boolean} [required=false] whether at least one of the properties must be set
    * @returns {*} error, if any
    */
-  exclusive(key, object, exclusiveKeys, required) {
+  public exclusive(key: string, object: object, exclusiveKeys: string[], required: boolean = false): E | void {
     // extract the keys with defined values (null included).
-    var keys = Object.keys(object).filter(key => object[key] !== undefined);
+    // @ts-ignore generic object read
+    const keys = Object.keys(object).filter((k: string) => (object[k] !== undefined));
 
-    var intersection = _intersection(keys, exclusiveKeys);
-    if (intersection.length > 1) {
+    const intersect = intersection(keys, exclusiveKeys);
+    if (intersect.length > 1) {
       return this._error(
         key,
-        `cannot have these properties set at the same time: ${this._array2string(intersection)}`
+        `cannot have these properties set at the same time: ${Valcheck._array2string(intersect)}`
       );
     }
-    if (intersection.length === 0 && required) {
+    if (intersect.length === 0 && required) {
       return this._error(
         key,
-        `must have one of these properties set: ${this._array2string(exclusiveKeys)}`
+        `must have one of these properties set: ${Valcheck._array2string(exclusiveKeys)}`
       );
     }
-    if (intersection.length === 1 && required) {
+    if (intersect.length === 1 && required) {
       // check that the value is not null (we only filtered out keys of undefined values)
-      return this.exist(key + '.' + intersection[0], object[intersection[0]]);
+      // @ts-ignore generic object read
+      return this.exist(key + '.' + intersect[0], object[intersect[0]]);
     }
   }
 
@@ -892,7 +960,7 @@ class Valcheck {
    * @param {*} value object to check
    * @returns {*} error, if any
    */
-  function(key, value) {
+  public 'function'(key: string, value: unknown): E | void {
     return this.type(key, value, 'function');
   }
 
@@ -904,17 +972,19 @@ class Valcheck {
    * @param {string} [rootPath] Will resolve `value` in `rootPath` instead of current working directory.
    * @returns {*} error, if any
    */
-  file(key, value, rootPath) {
-    var error;
+  public file(key: string, value: unknown, rootPath?: string): E | void {
+    if (fs === undefined || path === undefined) { return this._bug('Can only be used in NodeJS'); }
+
+    let error;
     if ((error = this.string(key, value, true))) { return error; }
 
-    var stat;
+    let stat;
     try {
       if (rootPath) {
-        value = path.resolve(rootPath, value);
+        value = path.resolve(rootPath, value as string);
       }
-      stat = fs.statSync(value);
-    } catch(e) {
+      stat = fs.statSync(value as string);
+    } catch (e) {
       return this._error(key, `must be an existing/readable file (${value})`);
     }
     if (!stat.isFile()) {
@@ -930,17 +1000,19 @@ class Valcheck {
    * @param {string} [rootPath] Will resolve `value` in `rootPath` instead of current working directory.
    * @returns {*} error, if any
    */
-  dir(key, value, rootPath) {
-    var error;
+  public dir(key: string, value: unknown, rootPath?: string): E | void {
+    if (fs === undefined || path === undefined) { return this._bug('Can only be used in NodeJS'); }
+
+    let error;
     if ((error = this.string(key, value, true))) { return error; }
 
-    var stat;
+    let stat;
     try {
       if (rootPath) {
-        value = path.resolve(rootPath, value);
+        value = path.resolve(rootPath, value as string);
       }
-      stat = fs.statSync(value);
-    } catch(e) {
+      stat = fs.statSync(value as string);
+    } catch (e) {
       return this._error(key, `must be an existing/readable directory (${value})`);
     }
     if (!stat.isDirectory()) {
@@ -953,12 +1025,14 @@ class Valcheck {
    *
    * @param {string} key
    * @param {*} value
-   * @param {boolean} [ISOString=false] whether to fail if the value is a date in the ISO-8601 format.
+   * @param {boolean} [acceptIsoString=false] whether to fail if the value is a date in the ISO-8601 format.
    *
    * @returns {*} error, if any
    */
-  date(key, value, ISOString) {
-    if (ISOString && new Date(value).toISOString() === value) { return; }
+  public date(key: string, value: unknown, acceptIsoString: boolean): E | void {
+    const type = this.getType(value);
+
+    if (type === 'string' && acceptIsoString && new Date(value as string).toISOString() === value) { return; }
 
     if (!(value instanceof Date) || !isFinite(value.getTime())) {
       return this._error(key, 'must be a valid date');
@@ -972,9 +1046,15 @@ class Valcheck {
    * @return {string}
    * @private
    */
-  _escapeRegExp(str) {
-    return str.replace(/[\-\[\]\/{}()*+?.\\^$|]/g, "\\$&");
+  private static _escapeRegExp(str: string): string {
+    return str.replace(/[\-\[\]\/{}()*+?.\\^$|]/g, '\\$&');
+  }
+
+  private static _isNaN(n: unknown): boolean {
+    return n !== n;
+  }
+
+  private static _isInt(n: number): boolean {
+    return Math.floor(n) === n;
   }
 }
-
-module.exports = Valcheck;

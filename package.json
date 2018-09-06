@@ -20,9 +20,11 @@
   },
   "license": "MIT",
   "version": "1.0.15",
+  "main": "build/Valcheck.js",
+  "types": "build/Valcheck.d.ts",
   "files": [
-    "src",
-    "index.js"
+    "build/*",
+    "jsdoc/*"
   ],
   "logo": "https://upload.wikimedia.org/wikipedia/en/a/a8/The_Wire_Valcheck.jpg",
   "keywords": [
@@ -37,24 +39,23 @@
     "node": ">=4.6.0"
   },
   "scripts": {
-    "//": "invoked using >npm run [script-name]",
+    "make": "npm run lint && npm run build && npm run test",
+    "lint": "tslint --fix --config tslint.json 'src/**/*'",
     "test": "mocha test",
-    "cover": "istanbul cover --root ./ -i '**/*.js' _mocha",
-    "doc": "jsdoc --configure .jsdoc.json",
-    "lint": "eslint ./src",
-    "patch": "npm version patch && git push && npm publish"
+    "build": "tsc",
+    "watch": "tsc -w | tee watch.out",
+    "patch": "npm run make && npm version patch && git push && npm publish"
   },
   "dependencies": {
-    "lodash.difference": "4.4.0",
+    "lodash.difference": "4.5.0",
     "lodash.intersection": "4.4.0"
   },
   "devDependencies": {
-    "eslint": "3.9.1",
-    "eslint-plugin-import-order": "^2.1.4",
-    "ink-docstrap": "1.1.0",
-    "istanbul": "~1.1.0-alpha.1",
-    "jsdoc": "3.4.1",
+    "tslint": "5.11.0",
     "mocha": "3.0.2",
-    "should": "11.1.0"
+    "should": "11.1.0",
+    "typescript": "3.0.1",
+    "@types/lodash.difference": "4.5.0",
+    "@types/lodash.intersection": "4.4.0"
   }
 }
