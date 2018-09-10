@@ -19,7 +19,7 @@
     "url": "https://github.com/Linkurious/valcheck/issues"
   },
   "license": "MIT",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "main": "build/Valcheck.js",
   "types": "build/Valcheck.d.ts",
   "files": [
