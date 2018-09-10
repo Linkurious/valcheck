@@ -121,7 +121,7 @@ export interface FieldDefinition<E> {
   requiredUnless?: string;
   requiredIf?: string;
   deprecated?: string;
-  values: Array<unknown>;
+  values?: Array<unknown>;
   type?: string | string[];
   check?: (key: string, value: unknown) => (E | void) | (keyof Valcheck<E>) | string[];
   arrayItem?: FieldDefinition<E>;
