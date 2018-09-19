@@ -123,7 +123,10 @@ export interface FieldDefinition<E> {
   deprecated?: string;
   values?: Array<unknown>;
   type?: string | string[];
-  check?: (key: string, value: unknown) => (E | void) | [string, ...Array<unknown>] | keyof Valcheck<E>;
+  check?:
+    ((key: string, value: unknown) => (E | void))
+    | [keyof Valcheck<E>, ...Array<unknown>]
+    | keyof Valcheck<E>;
   arrayItem?: FieldDefinition<E>;
   arraySize?: number;
   anyProperty?: FieldDefinition<E>;
