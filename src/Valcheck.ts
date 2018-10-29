@@ -6,7 +6,7 @@
 let fs: { statSync(file: string): { isFile(): boolean, isDirectory(): boolean } };
 let path: { resolve(p1: string, p2: string): string };
 // @ts-ignore
-if (process) {
+if (typeof module !== 'undefined' && module.exports) {
   // @ts-ignore
   fs = require('fs');
   // @ts-ignore
