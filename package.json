@@ -43,7 +43,8 @@
     "lint": "tslint --fix --config tslint.json 'src/**/*'",
     "test": "nyc mocha",
     "build": "tsc",
-    "patch": "npm run make && npm version patch && git push && npm publish"
+    "patch": "npm run make && npm version patch && git push && npm publish",
+    "minor": "npm run make && npm version minor && git push && npm publish"
   },
   "dependencies": {
     "lodash.difference": "4.5.0",
