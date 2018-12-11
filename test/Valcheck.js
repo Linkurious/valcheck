@@ -9,8 +9,10 @@ const it = require('mocha/lib/mocha.js').it;
 const path = require('path');
 
 describe('Valcheck ', function() {
-  const Check = require('../build/Valcheck').default;
-  const check = new Check(error => error);
+  const CheckNode = require('../lib/node');
+  const Check = require('../lib');
+
+  const check = new CheckNode(error => error);
 
   /**
    * @param {function} fn
@@ -45,6 +47,22 @@ describe('Valcheck ', function() {
     should.exist(ex);
     should(ex.message).equal('"n" must be a number.');
     done();
+  });
+
+  it('Should allow custom bug handlers', function() {
+    let lastBug = undefined;
+    const cc = new Check(undefined, (bug) => lastBug = bug);
+
+    // errors are still throwing (default behavior)
+    try {
+      cc.exist('test1', null);
+    } catch(e) {
+      should(e.message).equal('"test1" must not be null.');
+    }
+
+    // bugs are handled in a custom way here
+    cc.values('test2', 'a', []);
+    should(lastBug).equal('Library usage error: values must be a non-empty array.');
   });
 
   it('Should check for null or undefined', function(done) {
@@ -565,10 +583,16 @@ describe('Valcheck ', function() {
     // requiredUnless
     let props = {foo: {requiredUnless: 'bar'}, bar: {}};
     shouldFail(
-      () => check.properties('object', {}, props), '"object.foo" must not be undefined.'
+      () => check.properties('object', {}, props),
+      '"object.foo" must not be undefined.'
     );
     shouldFail(
-      () => check.properties('object', {bar: null}, props), '"object.foo" must not be undefined.'
+      () => check.properties('object', {bar: null}, props),
+      '"object.foo" must not be undefined.'
+    );
+    shouldFail(
+      () => check.property('value', 12, {requiredUnless: 'foo'}, undefined),
+      'Library usage error: "definition.requiredUnless" required "parent" to be set.'
     );
     shouldSucceed(() => check.properties('object', {foo: 'abc'}, props));
     shouldSucceed(() => check.properties('object', {bar: 123}, props));
@@ -578,10 +602,16 @@ describe('Valcheck ', function() {
     // requiredIf
     props = {foo: {requiredIf: 'bar'}, bar: {}};
     shouldFail(
-      () => check.properties('object', {bar: 'abc'}, props), '"object.foo" must not be undefined.'
+      () => check.properties('object', {bar: 'abc'}, props),
+      '"object.foo" must not be undefined.'
     );
     shouldFail(
-      () => check.properties('object', {bar: 123}, props), '"object.foo" must not be undefined.'
+      () => check.properties('object', {bar: 123}, props),
+      '"object.foo" must not be undefined.'
+    );
+    shouldFail(
+      () => check.property('value', undefined, {requiredIf: 'foo'}, undefined),
+      'Library usage error: "definition.requiredIf" required "parent" to be set.'
     );
     shouldSucceed(() => check.properties('object', {}, props));
     shouldSucceed(() => check.properties('object', {bar: null}, props));

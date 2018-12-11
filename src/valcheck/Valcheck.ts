@@ -1,17 +1,4 @@
-/**
- * Created on 2015-06-30
- */
 'use strict';
-
-let fs: { statSync(file: string): { isFile(): boolean, isDirectory(): boolean } };
-let path: { resolve(p1: string, p2: string): string };
-// @ts-ignore
-if (typeof module !== 'undefined' && module.exports) {
-  // @ts-ignore
-  fs = require('fs');
-  // @ts-ignore
-  path = require('path');
-}
 
 /**
  * @type {function(Array, Array):Array}
@@ -32,6 +19,7 @@ const RGBA_COLOR_RE = /^rgba\(\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*,\s*([01]?\d\d?
 const URL_RE = /^([a-zA-Z]{2,8}(?:\+[a-zA-Z]{2,8})?):\/\/([^/\s]+)(\/[^\s]*)?$/i;
 const HTTP_URL_RE = /^(https?):\/\/([^/\s]+)(\/[^\s]*)?$/i;
 const WS_URL_RE = /^(wss?):\/\/([^/\s]+)(\/[^\s]*)?$/i;
+
 const DEFINITION_FIELDS = [
   'deprecated',
   'required',
@@ -39,11 +27,19 @@ const DEFINITION_FIELDS = [
   'requiredIf',
   'values',
   'type',
-  'arrayItem', 'arraySize',
+  'arrayItem',
+  'arraySize',
   'anyProperty',
-  'properties', 'policy',
+  'properties',
+  'policy',
   'check'
 ];
+
+export type Type = 'null' | 'undefined' | 'array' | 'object' | 'number' | 'NaN' | 'boolean' | 'string' | 'function';
+
+export type TypeArticle = {[key in Type]: string};
+
+export type FieldPolicy = 'strict' | 'strictExist' | 'inclusive';
 
 /**
  * A validation error handler
@@ -59,7 +55,7 @@ const DEFINITION_FIELDS = [
  * @param {string} the library usage error message
  */
 
-const TYPE_ARTICLE: {[key: string]: string} = {
+const TYPE_ARTICLES: TypeArticle = {
   null: '',
   undefined: '',
   NaN: '',
@@ -94,10 +90,6 @@ const CSS_COLORS = [
   'yellowgreen'
 ];
 
-export type Type = 'null' | 'undefined' | 'array' | 'object' | 'number' | 'NaN' | 'boolean' | 'string' | 'function';
-
-export type FieldPolicy = 'strict' | 'strictExist' | 'inclusive';
-
 /**
  * @typedef {object} FieldDefinition
  * @property {boolean|undefined} required Whether the property is required.
@@ -122,7 +114,7 @@ export interface FieldDefinition<E> {
   requiredIf?: string;
   deprecated?: string;
   values?: Array<unknown>;
-  type?: string | string[];
+  type?: Type | Type[];
   check?:
     ((key: string, value: unknown) => (E | void))
     | [keyof Valcheck<E>, ...Array<unknown>]
@@ -139,7 +131,7 @@ export interface FieldDefinition<E> {
 /**
  * @class Valcheck
  */
-export default class Valcheck<E> {
+export class Valcheck<E> {
 
   public bugHandler: (error: string) => E;
   public errorHandler: (error: string) => E;
@@ -184,7 +176,7 @@ export default class Valcheck<E> {
    * @return {*} a truthy value in case of error.
    * @private
    */
-  public _error(key: string, message: string): E | void {
+  protected _error(key: string, message: string): E | void {
     return this.errorHandler(`"${key}" ${message}.`);
   }
 
@@ -195,7 +187,7 @@ export default class Valcheck<E> {
    * @returns {*} a truthy value in case of bug.
    * @private
    */
-  public _bug(message: string): E | void {
+  protected _bug(message: string): E | void {
     return this.bugHandler('Library usage error: ' + message + '.');
   }
 
@@ -273,8 +265,6 @@ export default class Valcheck<E> {
    * @returns {*} error, if any
    */
   public hexColor(key: string, value: unknown, allowShort: boolean = true): E | void {
-    allowShort = allowShort === undefined ? true : allowShort;
-
     let error;
     if ((error = this.string(key, value, true))) { return error; }
 
@@ -402,7 +392,7 @@ export default class Valcheck<E> {
    * @returns {*} error, if any
    * @private
    */
-  public _checkInterval(key: string, value: number, errorPrefix: string, min?: number, max?: number): E | void {
+  protected _checkInterval(key: string, value: number, errorPrefix: string, min?: number, max?: number): E | void {
     if (
       min !== undefined && max !== undefined &&
       min !== -Infinity && max !== Infinity &&
@@ -460,12 +450,18 @@ export default class Valcheck<E> {
    * @returns {*} error, if any
    */
   public stringArray(
-    key: string, value: unknown, minSize?: number, maxSize?: number, nonEmpty: boolean = false
+    key: string,
+    value: unknown,
+    minSize?: number,
+    maxSize?: number,
+    nonEmpty: boolean = false
   ): E | void {
     let error;
     if ((error = this.array(key, value, minSize, maxSize))) { return error; }
     for (let i = 0, len = (value as Array<unknown>).length ; i < len ; i++) {
-      if ((error = this.string(key + '[' + i + ']', (value as Array<unknown>)[i], nonEmpty))) { return error; }
+      if ((error = this.string(key + '[' + i + ']', (value as Array<unknown>)[i], nonEmpty))) {
+        return error;
+      }
     }
   }
 
@@ -474,13 +470,18 @@ export default class Valcheck<E> {
    *
    * @param {string} key value key
    * @param {*} value tested value
-   * @param {number} [minValue=-Infinity] the minimum accepted value
-   * @param {number} [maxValue=+Infinity] the maximum accepted value
+   * @param {number} [min=-Infinity] the minimum accepted value
+   * @param {number} [max=+Infinity] the maximum accepted value
    * @returns {*} error, if any
    */
-  public integer(key: string, value: unknown, minValue: number = -Infinity, maxValue: number = +Infinity): E | void {
+  public integer(
+    key: string,
+    value: unknown,
+    min: number = -Infinity,
+    max: number = +Infinity
+  ): E | void {
     let error;
-    if ((error = this.number(key, value, minValue, maxValue))) { return error; }
+    if ((error = this.number(key, value, min, max))) { return error; }
     if (!Valcheck._isInt(value as number)) {
       return this._error(key, 'must be an integer');
     }
@@ -491,11 +492,16 @@ export default class Valcheck<E> {
    *
    * @param {string} key value key
    * @param {*} value tested value
-   * @param {number} [minValue=-Infinity] Minimum accepted value
-   * @param {number} [maxValue=+Infinity] Maximum accepted value
+   * @param {number} [min=-Infinity] Minimum accepted value
+   * @param {number} [max=+Infinity] Maximum accepted value
    * @returns {*} error, if any
    */
-  public number(key: string, value: unknown, minValue: number = -Infinity, maxValue: number = +Infinity): E | void {
+  public number(
+    key: string,
+    value: unknown,
+    min: number = -Infinity,
+    max: number = +Infinity
+  ): E | void {
     let error;
     if ((error = this.type(key, value, 'number'))) { return error; }
 
@@ -503,7 +509,9 @@ export default class Valcheck<E> {
     if (!isFinite(value as number)) {
       return this._error(key, 'must be a finite number');
     }
-    if ((error = this._checkInterval(key, value as number, 'must be', minValue, maxValue))) { return error; }
+    if ((error = this._checkInterval(key, value as number, 'must be', min, max))) {
+      return error;
+    }
   }
 
   /**
@@ -511,26 +519,31 @@ export default class Valcheck<E> {
    *
    * @param {string} key value key
    * @param {*} value tested value
-   * @param {Array<*>} legalValues accepted values
+   * @param {Array<*>} allowed accepted values
    * @param {boolean} [showInvalidValue=false] whether to display the invalid value in case of error
    * @returns {*} error, if any
    */
-  public values(key: string, value: unknown, legalValues: Array<unknown>, showInvalidValue: boolean = false): E | void {
-    if (!Array.isArray(legalValues) || legalValues.length === 0) {
+  public values(
+    key: string,
+    value: unknown,
+    allowed: Array<unknown>,
+    showInvalidValue: boolean = false
+  ): E | void {
+    if (!Array.isArray(allowed) || allowed.length === 0) {
       return this._bug('values must be a non-empty array');
     }
-    for (let i = 0; i < legalValues.length; ++i) {
-      if (value === legalValues[i]) { return; }
+    for (let i = 0; i < allowed.length; ++i) {
+      if (value === allowed[i]) { return; }
       // check if value is NaN itself
-      if (Valcheck._isNaN(value) && Valcheck._isNaN(legalValues[i])) { return; }
+      if (Valcheck._isNaN(value) && Valcheck._isNaN(allowed[i])) { return; }
     }
     let suffix = '';
     if (showInvalidValue) {
       suffix = ` (was ${JSON.stringify(value)})`;
     }
-    return this._error(key, legalValues.length > 1
-      ? `must be one of: ${Valcheck._array2string(legalValues)}${suffix}`
-      : `must be ${Valcheck._array2string(legalValues)}${suffix}`
+    return this._error(key, allowed.length > 1
+      ? `must be one of: ${Valcheck._array2string(allowed)}${suffix}`
+      : `must be ${Valcheck._array2string(allowed)}${suffix}`
     );
   }
 
@@ -597,13 +610,15 @@ export default class Valcheck<E> {
    * @returns {*} error, if any
    */
   public properties(
-    key: string, value: object, properties: {[key: string]: FieldDefinition<E>}, policy: FieldPolicy = 'strict'
+    key: string,
+    value: object,
+    properties: {[key: string]: FieldDefinition<E>},
+    policy: FieldPolicy = 'strict'
   ): E | void {
     let error;
     if ((error = this.object(key, value))) { return error; }
 
     const legalKeys = Object.keys(properties);
-    if (policy === undefined) { policy = 'strict'; }
 
     if (policy === 'strict') {
       const unauthorized = difference(Object.keys(value), legalKeys);
@@ -636,7 +651,12 @@ export default class Valcheck<E> {
    * @param {object|array} [parent] Reference of parent object for `requiredUnless` and `requiredIf`.
    * @returns {*} error, if any
    */
-  public property(key: string, value: object, definition: FieldDefinition<E>, parent?: object): E | void {
+  public property(
+    key: string,
+    value: unknown,
+    definition: FieldDefinition<E>,
+    parent?: object
+  ): E | void {
     let error;
 
     const illegalDefFields = difference(Object.keys(definition), DEFINITION_FIELDS);
@@ -721,13 +741,13 @@ export default class Valcheck<E> {
     if (definition.properties) {
       if ((error = this.type(key, value, 'object'))) { return error; }
       // type has been checked already, we can stop here
-      return this.properties(key, value, definition.properties, definition.policy);
+      return this.properties(key, value as object, definition.properties, definition.policy);
     }
 
     // if "anyProperty" is defined, check if propertyValue is an object an validate any properties
     if (definition.anyProperty) {
       if ((error = this.type(key, value, 'object'))) { return error; }
-      const keys = Object.keys(value);
+      const keys = Object.keys(value as object);
       for (let i = 0, l = keys.length, subKey = keys[0]; i < l; subKey = keys[++i]) {
         if (
           // @ts-ignore generic object read
@@ -840,24 +860,24 @@ export default class Valcheck<E> {
    *
    * @param {string} key Object key.
    * @param {*} value Object to check.
-   * @param {string|string[]} type Allowed type(s) (use "null" type for null values).
+   * @param {string|string[]} allowed Allowed type(s) (use "null" type for null values).
    * @returns {*} error, if any
    */
-  public type(key: string, value: unknown, type: string | string[]): E | void {
+  public type(key: string, value: unknown, allowed: Type | Type[]): E | void {
     const valueType: Type = this.getType(value);
-    type = this._itemOrList(type, []);
-    if (type.length === 0) {
+    const allowedArray: Type[] = this._itemOrList(allowed, []);
+    if (allowedArray.length === 0) {
       return this._bug('check.type: type array must have at least one type');
     }
     let found = false;
-    for (let i = 0; i < type.length && !found; ++i) {
-      found = type[i] === valueType;
+    for (let i = 0; i < allowedArray.length && !found; ++i) {
+      found = allowedArray[i] === valueType;
       if (found) { break; }
     }
     if (!found) {
-      return this._error(key, type.length > 1
-        ? `type must be one of: ${Valcheck._array2string(type)}`
-        : `must be ${TYPE_ARTICLE[type[0]]}${type[0]}`
+      return this._error(key, allowedArray.length > 1
+        ? `type must be one of: ${Valcheck._array2string(allowedArray)}`
+        : `must be ${TYPE_ARTICLES[allowedArray[0]]}${allowedArray[0]}`
       );
     }
   }
@@ -884,7 +904,7 @@ export default class Valcheck<E> {
    * @returns {Array<*>|null|undefined}
    * @private
    */
-  public _itemOrList <T>(item: T | T[] | null | undefined, defaultValue: T[]): T[] {
+  protected _itemOrList <T>(item: T | T[] | null | undefined, defaultValue: T[]): T[] {
     if (Valcheck._notSet(item) && defaultValue !== undefined) {
       item = defaultValue;
     }
@@ -965,62 +985,6 @@ export default class Valcheck<E> {
    */
   public 'function'(key: string, value: unknown): E | void {
     return this.type(key, value, 'function');
-  }
-
-  /**
-   * Check if the given file path points to a readable file.
-   *
-   * @param {string} key
-   * @param {*} value A file path
-   * @param {string} [rootPath] Will resolve `value` in `rootPath` instead of current working directory.
-   * @returns {*} error, if any
-   */
-  public file(key: string, value: unknown, rootPath?: string): E | void {
-    if (fs === undefined || path === undefined) { return this._bug('Can only be used in NodeJS'); }
-
-    let error;
-    if ((error = this.string(key, value, true))) { return error; }
-
-    let stat;
-    try {
-      if (rootPath) {
-        value = path.resolve(rootPath, value as string);
-      }
-      stat = fs.statSync(value as string);
-    } catch (e) {
-      return this._error(key, `must be an existing/readable file (${value})`);
-    }
-    if (!stat.isFile()) {
-      return this._error(key, `must be a file (${value})`);
-    }
-  }
-
-  /**
-   * Check if `value` is a directory.
-   *
-   * @param {string} key
-   * @param {*} value
-   * @param {string} [rootPath] Will resolve `value` in `rootPath` instead of current working directory.
-   * @returns {*} error, if any
-   */
-  public dir(key: string, value: unknown, rootPath?: string): E | void {
-    if (fs === undefined || path === undefined) { return this._bug('Can only be used in NodeJS'); }
-
-    let error;
-    if ((error = this.string(key, value, true))) { return error; }
-
-    let stat;
-    try {
-      if (rootPath) {
-        value = path.resolve(rootPath, value as string);
-      }
-      stat = fs.statSync(value as string);
-    } catch (e) {
-      return this._error(key, `must be an existing/readable directory (${value})`);
-    }
-    if (!stat.isDirectory()) {
-      return this._error(key, `must be a directory (${value})`);
-    }
   }
 
   /**
