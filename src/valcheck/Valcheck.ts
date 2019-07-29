@@ -19,6 +19,7 @@ const RGBA_COLOR_RE = /^rgba\(\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*,\s*([01]?\d\d?
 const URL_RE = /^([a-zA-Z]{2,8}(?:\+[a-zA-Z]{2,8})?):\/\/([^/\s]+)(\/[^\s]*)?$/i;
 const HTTP_URL_RE = /^(https?):\/\/([^/\s]+)(\/[^\s]*)?$/i;
 const WS_URL_RE = /^(wss?):\/\/([^/\s]+)(\/[^\s]*)?$/i;
+const ISO_DATE_RE = /^\d+-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)/i;
 
 const DEFINITION_FIELDS = [
   'deprecated',
@@ -999,7 +1000,22 @@ export class Valcheck<E> {
   public date(key: string, value: unknown, acceptIsoString: boolean): E | void {
     const type = this.getType(value);
 
-    if (type === 'string' && acceptIsoString && new Date(value as string).toISOString() === value) { return; }
+    if (type === 'string' && acceptIsoString) {
+      // check for wrong wrong ISO format
+      if (!ISO_DATE_RE.test(value as string)) {
+        return this._error(key, 'must be a valid ISO date string');
+      }
+
+      // check for wrong date with valid format
+      const ts = new Date(value as string).getTime();
+      if (!isFinite(ts)) {
+        // this tests of date.getTime() is NaN
+        return this._error(key, 'must be a valid ISO date string');
+      }
+
+      // the date string was valid
+      return;
+    }
 
     if (!(value instanceof Date) || !isFinite(value.getTime())) {
       return this._error(key, 'must be a valid date');

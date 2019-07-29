@@ -1009,18 +1009,38 @@ describe('Valcheck ', function() {
     );
   });
 
-  it('Should check date', function(done) {
+  it('Should check date (native)', function(done) {
     shouldSucceed(() => check.date('date', new Date()));
     shouldSucceed(() => check.date('date', new Date(0)));
     shouldSucceed(() => check.date('date', new Date('2016-06-09T12:14:25.078Z')));
-    shouldSucceed(() => check.date('date', '2016-06-09T12:14:25.078Z', true));
 
     shouldFail(() => check.date('date', undefined), '"date" must be a valid date.');
     shouldFail(() => check.date('date', null), '"date" must be a valid date.');
     shouldFail(() => check.date('date', ''), '"date" must be a valid date.');
     shouldFail(() => check.date('date', 1), '"date" must be a valid date.');
     shouldFail(() => check.date('date', new Date('')), '"date" must be a valid date.');
-    shouldFail(() => check.date('date', '2016-06-09T12:14:25.078Z'), '"date" must be a valid date.');
+
+    done();
+  });
+
+  it('Should check date (iso string)', function(done) {
+    shouldSucceed(() => check.date('date', '2016-06-09T12:14:25.078Z', true)); // utc zero
+    shouldSucceed(() => check.date('date', '2016-06-09T12:14:25.078+03:00', true)); // positive utc offset
+    shouldSucceed(() => check.date('date', '2016-06-09T12:14:25.078-11:30', true)); // negative utc offset
+    shouldSucceed(() => check.date('date', '2016-12-31T23:59:59-11:30', true)); // no ms fraction
+    shouldSucceed(() => check.date('date', '2016-12-31T23:59:59.9999999-11:30', true)); // long ms fraction
+    shouldSucceed(() => check.date('date', '9999-01-01T21:14:25-11:30', true)); // year 9999
+    shouldSucceed(() => check.date('date', '0931-01-01T22:14:25-11:30', true)); // 3 digits year
+
+    // no tz
+    shouldFail(() => check.date('date', '2016-06-09T12:14:25', true), '"date" must be a valid ISO date string.');
+    // rz offset >= 24
+    shouldFail(() => check.date('date', '2016-06-09T12:14:25+25:00', true), '"date" must be a valid ISO date string.');
+    shouldFail(() => check.date('date', '2016-06-09T12:14:25-25:00', true), '"date" must be a valid ISO date string.');
+    // month at zero
+    shouldFail(() => check.date('date', '2016-00-09T12:14:25+03:00', true), '"date" must be a valid ISO date string.');
+    // day at zero
+    shouldFail(() => check.date('date', '2016-01-00T12:14:25+03:00', true), '"date" must be a valid ISO date string.');
 
     done();
   });
