@@ -16,9 +16,9 @@ const HEX3_COLOR_RE = /^#[a-fA-F0-9]{3}$/;
 const RGB_COLOR_RE = /^rgb\(\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*,\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*,\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*\)$/i;
 // tslint:disable-next-line:max-line-length
 const RGBA_COLOR_RE = /^rgba\(\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*,\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*,\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*,\s*(?:0|1|0?\.\d+)\s*\)$/i;
-const URL_RE = /^([a-zA-Z]{2,8}(?:\+[a-zA-Z]{2,8})?):\/\/([^/\s]+)(\/[^\s]*)?$/i;
-const HTTP_URL_RE = /^(https?):\/\/([^/\s]+)(\/[^\s]*)?$/i;
-const WS_URL_RE = /^(wss?):\/\/([^/\s]+)(\/[^\s]*)?$/i;
+const URL_RE = /^([a-zA-Z]{2,8}(?:\+[a-zA-Z]{2,8})?):\/\/([^/\s:]+)(:\d+)?(\/[^\s]*)?$/i;
+const HTTP_URL_RE = /^(https?):\/\/([^/\s:]+)(:\d+)?(\/[^\s]*)?$/i;
+const WS_URL_RE = /^(wss?):\/\/([^/\s:]+)(:\d+)?(\/[^\s]*)?$/i;
 const ISO_DATE_RE = /^\d+-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)/i;
 
 const DEFINITION_FIELDS = [
@@ -177,7 +177,7 @@ export class Valcheck<E> {
    * @return {*} a truthy value in case of error.
    * @private
    */
-  protected _error(key: string, message: string): E | void {
+  protected _error(key: string, message: string): E {
     return this.errorHandler(`"${key}" ${message}.`);
   }
 
@@ -188,7 +188,7 @@ export class Valcheck<E> {
    * @returns {*} a truthy value in case of bug.
    * @private
    */
-  protected _bug(message: string): E | void {
+  protected _bug(message: string): E {
     return this.bugHandler('Library usage error: ' + message + '.');
   }
 
@@ -252,7 +252,7 @@ export class Valcheck<E> {
     if ((value as string).indexOf(prefix) !== 0) {
       return this._error(key, `must start with "${prefix}"`);
     }
-    if (needSuffix !== false && (value as string).length <= prefix.length) {
+    if (needSuffix && (value as string).length <= prefix.length) {
       return this._error(key, `must be longer than "${prefix}"`);
     }
   }
@@ -825,7 +825,7 @@ export class Valcheck<E> {
       scheme = 'ws(s)';
       re = WS_URL_RE;
     } else {
-      re = new RegExp(`^${Valcheck._escapeRegExp(scheme)}://([^/\\s]+)(/[^\\s]*)?$`, 'i');
+      re = new RegExp(`^${Valcheck._escapeRegExp(scheme)}://([^/\\s:]+)(:\\d+)?(/[^\\s]*)?$`, 'i');
     }
 
     if (!re.test(value as string)) {

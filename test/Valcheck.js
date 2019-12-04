@@ -916,6 +916,8 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.httpUrl('url', 'http://google.com'));
     shouldSucceed(() => check.httpUrl('url', 'https://google.com'));
     shouldSucceed(() => check.httpUrl('url', 'http://localhost:7474'));
+    shouldSucceed(() => check.httpUrl('url', 'http://localhost:7474', 'http'));
+    shouldSucceed(() => check.httpUrl('url', 'https://localhost:7474', 'http'));
     shouldSucceed(() => check.url('url', 'Http://google.com', 'http'));
     shouldSucceed(() => check.url('url', 'Https://google.com', 'http'));
     shouldSucceed(() => check.url('url', 'ws://google.com', 'ws'));
@@ -929,27 +931,71 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.url('url', 'bolt+routing://github.com/bla.git'));
     shouldSucceed(() => check.url('url', 'Bolt+routing://10.5.6.77:7474', 'bolt+routing'));
 
-    shouldFail(() => check.url('url', 'http://goog le.com/lol.html'), '"url" must be a valid URL.');
     shouldFail(() => check.url('url', null), '"url" must be a string.');
+    shouldFail(() => check.url('url', 123), '"url" must be a string.');
     shouldFail(() => check.url('url', ''), '"url" must be a non-empty string.');
     shouldFail(() => check.url('url', '123'), '"url" must be a valid URL.');
+
+    // space in domain (any scheme)
+    shouldFail(
+      () => check.url('url', 'http://goog le.com/lol.html'),
+      '"url" must be a valid URL.'
+    );
+
+    shouldFail(
+      () => check.url('url', 'http://goog le.com/lol.html'),
+      '"url" must be a valid URL.'
+    );
+
+    // invalid port (any scheme)
+    shouldFail(
+      () => check.url('url', 'http://google.com:44x/lol.html'),
+      '"url" must be a valid URL.'
+    );
+
+    // invalid port (http)
+    shouldFail(
+      () => check.url('url', 'http://google.com:44x/lol.html', 'http'),
+      '"url" must be a valid URL (starting with http(s)://).'
+    );
+
+    // invalid port (ws)
+    shouldFail(
+      () => check.url('url', 'http://google.fr', 'ws'),
+      '"url" must be a valid URL (starting with ws(s)://).'
+    );
+
+    // invalid port (bolt+routing)
+    shouldFail(
+      () => check.url('url', 'bolt+routing://10.5.6.77:747x', 'bolt+routing'),
+      '"url" must be a valid URL (starting with bolt+routing://).'
+    );
+
+    // scheme does not match (bolt+routing)
     shouldFail(
       () => check.url('url', 'Boltt+routing://10.5.6.77:7474', 'bolt+routing'),
       '"url" must be a valid URL (starting with bolt+routing://).'
     );
 
+    // scheme does not match (ws)
     shouldFail(
       () => check.url('url', 'http://google.fr', 'ws'),
       '"url" must be a valid URL (starting with ws(s)://).'
     );
+
+    // scheme does not match (pifpaf)
     shouldFail(
       () => check.url('url', 'ftp://free.fr', 'pifpaf'),
       '"url" must be a valid URL (starting with pifpaf://).'
     );
+
+    // scheme does not match (http, via `httpUrl` checker)
     shouldFail(
       () => check.httpUrl('url', 'ftp://free.fr'),
       '"url" must be a valid URL (starting with http(s)://).'
     );
+
+    // scheme does not match (ws)
     shouldFail(
       () => check.url('url', 'http://free.fr', 'ws'),
       '"url" must be a valid URL (starting with ws(s)://).'
