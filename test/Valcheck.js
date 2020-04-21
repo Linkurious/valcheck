@@ -913,6 +913,10 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.url('url', 'http://localhost'));
     shouldSucceed(() => check.url('url', 'http://localhost:8080'));
     shouldSucceed(() => check.url('url', 'https://google.com'));
+    shouldSucceed(() => check.url('url', 'neo4j://10.11.12.13:7479'));
+    shouldSucceed(() => check.url('url', 'neo4j://10.11.12.13:7479', 'neo4j'));
+    shouldSucceed(() => check.url('url', 'chrome-extension://play.google.com/my-extension'));
+    shouldSucceed(() => check.url('url', 'chrome-extension://play.google.com/my-extension', 'chrome-extension'));
     shouldSucceed(() => check.httpUrl('url', 'http://google.com'));
     shouldSucceed(() => check.httpUrl('url', 'https://google.com'));
     shouldSucceed(() => check.httpUrl('url', 'http://localhost:7474'));

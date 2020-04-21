@@ -16,7 +16,7 @@ const HEX3_COLOR_RE = /^#[a-fA-F0-9]{3}$/;
 const RGB_COLOR_RE = /^rgb\(\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*,\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*,\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*\)$/i;
 // tslint:disable-next-line:max-line-length
 const RGBA_COLOR_RE = /^rgba\(\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*,\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*,\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*,\s*(?:0|1|0?\.\d+)\s*\)$/i;
-const URL_RE = /^([a-zA-Z]{2,8}(?:\+[a-zA-Z]{2,8})?):\/\/([^/\s:]+)(:\d+)?(\/[^\s]*)?$/i;
+const URL_RE = /^([a-zA-Z][a-zA-Z0-9+\-.]+):\/\/([^/\s:]+)(:\d+)?(\/[^\s]*)?$/i;
 const HTTP_URL_RE = /^(https?):\/\/([^/\s:]+)(:\d+)?(\/[^\s]*)?$/i;
 const WS_URL_RE = /^(wss?):\/\/([^/\s:]+)(:\d+)?(\/[^\s]*)?$/i;
 const ISO_DATE_RE = /^\d+-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)/i;
