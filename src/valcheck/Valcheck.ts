@@ -114,11 +114,11 @@ export interface FieldDefinition<E> {
   requiredUnless?: string;
   requiredIf?: string;
   deprecated?: string;
-  values?: Array<unknown>;
+  values?: unknown[];
   type?: Type | Type[];
   check?:
     ((key: string, value: unknown) => (E | void))
-    | [keyof Valcheck<E>, ...Array<unknown>]
+    | [keyof Valcheck<E>, ...unknown[]]
     | keyof Valcheck<E>;
   arrayItem?: FieldDefinition<E>;
   arraySize?: number;
@@ -377,7 +377,7 @@ export class Valcheck<E> {
     let error;
     if ((error = this.type(key, value, 'array'))) { return error; }
 
-    if ((error = this._checkInterval(key, (value as Array<unknown>).length, 'length must be', minLength, maxLength))) {
+    if ((error = this._checkInterval(key, (value as unknown[]).length, 'length must be', minLength, maxLength))) {
       return error;
     }
   }
@@ -435,8 +435,8 @@ export class Valcheck<E> {
   public intArray(key: string, value: unknown, minSize?: number, maxSize?: number): E | void {
     let error;
     if ((error = this.array(key, value, minSize, maxSize))) { return error; }
-    for (let i = 0, len = (value as Array<unknown>).length ; i < len ; i++) {
-      if ((error = this.integer(key + '[' + i + ']', (value as Array<unknown>)[i]))) { return error; }
+    for (let i = 0, len = (value as unknown[]).length ; i < len ; i++) {
+      if ((error = this.integer(key + '[' + i + ']', (value as unknown[])[i]))) { return error; }
     }
   }
 
@@ -459,8 +459,8 @@ export class Valcheck<E> {
   ): E | void {
     let error;
     if ((error = this.array(key, value, minSize, maxSize))) { return error; }
-    for (let i = 0, len = (value as Array<unknown>).length ; i < len ; i++) {
-      if ((error = this.string(key + '[' + i + ']', (value as Array<unknown>)[i], nonEmpty))) {
+    for (let i = 0, len = (value as unknown[]).length ; i < len ; i++) {
+      if ((error = this.string(key + '[' + i + ']', (value as unknown[])[i], nonEmpty))) {
         return error;
       }
     }
@@ -527,7 +527,7 @@ export class Valcheck<E> {
   public values(
     key: string,
     value: unknown,
-    allowed: Array<unknown>,
+    allowed: unknown[],
     showInvalidValue: boolean = false
   ): E | void {
     if (!Array.isArray(allowed) || allowed.length === 0) {
@@ -553,7 +553,7 @@ export class Valcheck<E> {
    * @returns {string}
    * @private
    */
-  private static _array2string(list: Array<unknown>): string {
+  private static _array2string(list: unknown[]): string {
     return list.map(v => v === undefined ? 'undefined' : JSON.stringify(v)).join(', ');
   }
 
