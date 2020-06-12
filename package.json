@@ -43,6 +43,7 @@
     "lint": "tslint --fix --config tslint.json 'src/**/*'",
     "test": "nyc mocha",
     "build": "tsc",
+    "tsc": "tsc",
     "patch": "npm run make && npm version patch && git push && npm publish",
     "minor": "npm run make && npm version minor && git push && npm publish"
   },
