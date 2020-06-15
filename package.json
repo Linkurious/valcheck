@@ -41,7 +41,7 @@
   "scripts": {
     "make": "npm run lint && npm run build && npm run test",
     "lint": "tslint --fix --config tslint.json 'src/**/*'",
-    "lint:ci": "tslint -s checkstyle -o reports/checkstyle.xml --config tslint.json 'src/**/*'",
+    "lint:ci": "tslint -t checkstyle -o reports/checkstyle.xml --config tslint.json 'src/**/*'",
     "test": "nyc mocha",
     "build": "tsc",
     "tsc": "tsc",
