@@ -45,7 +45,7 @@
     "test": "nyc mocha",
     "test:unit": "nyc --reporter=text-summary --reporter=cobertura --report-dir=reports  mocha",
     "build": "tsc",
-    "tsc": "tsc",
+    "compile": "tsc -b",
     "patch": "npm run make && npm version patch && git push && npm publish",
     "minor": "npm run make && npm version minor && git push && npm publish"
   },
