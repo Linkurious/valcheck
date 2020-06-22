@@ -43,7 +43,7 @@
     "lint": "tslint --fix --config tslint.json 'src/**/*'",
     "lint:ci": "tslint -t checkstyle -o reports/checkstyle.xml --config tslint.json 'src/**/*'",
     "test": "nyc mocha",
-    "test:unit": "nyc --reporter=text-summary --reporter=cobertura --report-dir=reports/unit  mocha --reporter mocha-junit-reporter --reporter-options mochaFile=./repots/unit/junit-test-results.xml",
+    "test:unit": "nyc --reporter=text-summary --reporter=cobertura --report-dir=reports/unit  mocha --reporter mocha-junit-reporter --reporter-options mochaFile=./reports/unit/junit-test-results.xml",
     "build": "tsc",
     "compile": "tsc -b",
     "patch": "npm run make && npm version patch && git push && npm publish",
