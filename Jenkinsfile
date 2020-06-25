@@ -3,4 +3,6 @@
 nodeJob {
   // General
   projectName = "linkurious/valcheck"
+
+  runNpmPublish = true
 }
