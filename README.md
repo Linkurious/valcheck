@@ -7,6 +7,7 @@ A NodeJS value checker.
 <!-- - generate API documentation `npm run doc` (uses JSDoc) -->
 - run code style checker: `npm run lint` (uses TSLint)
 
-## Versionning and publishing
-Versionning is handled by bump2version.
+## Versioning and publishing
+Versioning is handled by bump2version.
+
 Publishing is handled by the ci.
