@@ -934,6 +934,8 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.url('url', 'git+ssh://github.com/linkurious/server.git', 'git+ssh'));
     shouldSucceed(() => check.url('url', 'bolt+routing://github.com/bla.git'));
     shouldSucceed(() => check.url('url', 'Bolt+routing://10.5.6.77:7474', 'bolt+routing'));
+    shouldSucceed(() => check.url('url', 'Bolt+s://10.5.6.77:7474', ['bolt', 'bolt+s', 'bolt+ssc']));
+    shouldSucceed(() => check.url('url', 'bolt+ssc://10.5.6.77:7474', ['bolt', 'bolt+s', 'bolt+ssc']));
 
     shouldFail(() => check.url('url', null), '"url" must be a string.');
     shouldFail(() => check.url('url', 123), '"url" must be a string.');
@@ -1003,6 +1005,12 @@ describe('Valcheck ', function() {
     shouldFail(
       () => check.url('url', 'http://free.fr', 'ws'),
       '"url" must be a valid URL (starting with ws(s)://).'
+    );
+
+    // scheme does not match (multiple schemes)
+    shouldFail(
+      () => check.url('url', 'bolt+scc://free.fr', ['bolt', 'bolt+s']),
+      '"url" must be a valid URL (starting with either: bolt://, bolt+s://).'
     );
 
     done();
