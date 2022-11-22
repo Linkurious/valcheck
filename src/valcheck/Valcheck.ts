@@ -811,7 +811,7 @@ export class Valcheck<E> {
    * @param {string} [scheme]
    * @return {*} error, if any
    */
-  public url(key: string, value: unknown, scheme?: string): E | void {
+  public url(key: string, value: unknown, scheme?: string | string[]): E | void {
     let err;
     if ((err = this.nonEmpty(key, value))) { return err; }
 
@@ -825,11 +825,19 @@ export class Valcheck<E> {
       scheme = 'ws(s)';
       re = WS_URL_RE;
     } else {
-      re = new RegExp(`^${Valcheck._escapeRegExp(scheme)}://([^/\\s:]+)(:\\d+)?(/[^\\s]*)?$`, 'i');
+      const prefix = Array.isArray(scheme)
+        ? scheme.map(s => Valcheck._escapeRegExp(s)).join('|')
+        : Valcheck._escapeRegExp(scheme);
+      re = new RegExp(`^(${prefix})://([^/\\s:]+)(:\\d+)?(/[^\\s]*)?$`, 'i');
     }
 
     if (!re.test(value as string)) {
-      const sScheme = scheme ? ` (starting with ${scheme}://)` : '';
+      let sScheme = '';
+      if (Array.isArray(scheme)) {
+        sScheme = ` (starting with either: ${scheme.map(s => `${s}://`).join(', ')})`;
+      } else if (typeof scheme === 'string') {
+        sScheme = ` (starting with ${scheme}://)`;
+      }
       return this._error(key, 'must be a valid URL' + sScheme);
     }
   }
