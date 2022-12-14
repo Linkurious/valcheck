@@ -117,7 +117,7 @@ export interface FieldDefinition<E> {
   values?: unknown[];
   type?: Type | Type[];
   check?:
-    ((key: string, value: unknown, parent: object) => (E | void))
+    ((key: string, value: unknown, parent?: object) => (E | void))
     | [keyof Valcheck<E>, ...unknown[]]
     | keyof Valcheck<E>;
   arrayItem?: FieldDefinition<E>;
