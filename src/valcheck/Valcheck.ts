@@ -117,7 +117,7 @@ export interface FieldDefinition<E> {
   values?: unknown[];
   type?: Type | Type[];
   check?:
-    ((key: string, value: unknown) => (E | void))
+    ((key: string, value: unknown, parent: object) => (E | void))
     | [keyof Valcheck<E>, ...unknown[]]
     | keyof Valcheck<E>;
   arrayItem?: FieldDefinition<E>;
@@ -725,8 +725,8 @@ export class Valcheck<E> {
         // @ts-ignore calling
         if ((error = this[fName].apply(this, args))) { return error; }
       } else if (t === 'function') {
-        // @ts-ignore "check" is a function that takes (key, value) as parameters
-        if ((error = definition.check(key, value))) { return error; }
+        // @ts-ignore "check" is a function that takes (key, value, parent) as parameters
+        if ((error = definition.check(key, value, parent))) { return error; }
       } else {
         return this._bug('"definition.check" must be an array or a function');
       }
