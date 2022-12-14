@@ -46,8 +46,8 @@
     "test:unit": "nyc --reporter=text-summary --reporter=cobertura --report-dir=reports/unit  mocha --reporter mocha-junit-reporter --reporter-options mochaFile=./reports/unit/junit-test-results.xml",
     "build": "tsc",
     "compile": "tsc -b",
-    "patch": "npm run make && npm version patch && git push && npm publish",
-    "minor": "npm run make && npm version minor && git push && npm publish"
+    "bump:patch": "bump2version patch && npm version --no-git-tag-version patch",
+    "bump:minor": "bump2version minor && npm version --no-git-tag-version minor"
   },
   "dependencies": {
     "lodash.difference": "4.5.0",
