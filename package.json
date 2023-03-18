@@ -78,7 +78,7 @@
     "jenkins-mocha": "8.0.0",
     "mocha": "5.2.0",
     "mocha-junit-reporter": "2.0.0",
-    "nyc": "13.3.0",
+    "nyc": "15.1.0",
     "should": "11.1.0",
     "source-map-support": "0.5.9",
     "ts-node": "7.0.1",
