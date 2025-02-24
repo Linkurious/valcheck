@@ -114,8 +114,8 @@ export interface FieldDefinition<E> {
   requiredUnless?: string;
   requiredIf?: string;
   deprecated?: string;
-  values?: unknown[];
-  type?: Type | Type[];
+  values?: ReadonlyArray<unknown>;
+  type?: Type | ReadonlyArray<Type>;
   check?:
     ((key: string, value: unknown, parent?: object) => (E | void))
     | [keyof Valcheck<E>, ...unknown[]]
@@ -527,7 +527,7 @@ export class Valcheck<E> {
   public values(
     key: string,
     value: unknown,
-    allowed: unknown[],
+    allowed: ReadonlyArray<unknown>,
     showInvalidValue: boolean = false
   ): E | void {
     if (!Array.isArray(allowed) || allowed.length === 0) {
@@ -553,7 +553,7 @@ export class Valcheck<E> {
    * @returns {string}
    * @private
    */
-  private static _array2string(list: unknown[]): string {
+  private static _array2string(list: ReadonlyArray<unknown>): string {
     return list.map(v => v === undefined ? 'undefined' : JSON.stringify(v)).join(', ');
   }
 
@@ -570,9 +570,9 @@ export class Valcheck<E> {
   public objectKeys(
     key: string,
     object: object,
-    acceptedKeys?: string[],
-    mandatoryKeys?: string[] | boolean,
-    forbiddenKeys?: string[]
+    acceptedKeys?: ReadonlyArray<string>,
+    mandatoryKeys?: ReadonlyArray<string> | boolean,
+    forbiddenKeys?: ReadonlyArray<string>
   ): E | void {
     let error;
     if ((error = this.object(key, object))) { return error; }
@@ -811,7 +811,7 @@ export class Valcheck<E> {
    * @param {string} [scheme]
    * @return {*} error, if any
    */
-  public url(key: string, value: unknown, scheme?: string | string[]): E | void {
+  public url(key: string, value: unknown, scheme?: string | ReadonlyArray<string>): E | void {
     let err;
     if ((err = this.nonEmpty(key, value))) { return err; }
 
@@ -825,9 +825,9 @@ export class Valcheck<E> {
       scheme = 'ws(s)';
       re = WS_URL_RE;
     } else {
-      const prefix = Array.isArray(scheme)
-        ? scheme.map(s => Valcheck._escapeRegExp(s)).join('|')
-        : Valcheck._escapeRegExp(scheme);
+      const prefix = typeof scheme === 'string'
+        ? Valcheck._escapeRegExp(scheme)
+        : scheme.map(s => Valcheck._escapeRegExp(s)).join('|');
       re = new RegExp(`^(${prefix})://([^/\\s:]+)(:\\d+)?(/[^\\s]*)?$`, 'i');
     }
 
@@ -872,9 +872,9 @@ export class Valcheck<E> {
    * @param {string|string[]} allowed Allowed type(s) (use "null" type for null values).
    * @returns {*} error, if any
    */
-  public type(key: string, value: unknown, allowed: Type | Type[]): E | void {
+  public type(key: string, value: unknown, allowed: Type | ReadonlyArray<Type>): E | void {
     const valueType: Type = this.getType(value);
-    const allowedArray: Type[] = this._itemOrList(allowed, []);
+    const allowedArray = this._itemOrList(allowed, []);
     if (allowedArray.length === 0) {
       return this._bug('check.type: type array must have at least one type');
     }
@@ -913,7 +913,10 @@ export class Valcheck<E> {
    * @returns {Array<*>|null|undefined}
    * @private
    */
-  protected _itemOrList <T>(item: T | T[] | null | undefined, defaultValue: T[]): T[] {
+  protected _itemOrList <T>(
+    item: T | ReadonlyArray<T> | null | undefined,
+    defaultValue: ReadonlyArray<T>
+  ): ReadonlyArray<T> {
     if (Valcheck._notSet(item) && defaultValue !== undefined) {
       item = defaultValue;
     }
@@ -960,7 +963,12 @@ export class Valcheck<E> {
    * @param {boolean} [required=false] whether at least one of the properties must be set
    * @returns {*} error, if any
    */
-  public exclusive(key: string, object: object, exclusiveKeys: string[], required: boolean = false): E | void {
+  public exclusive(
+    key: string,
+    object: object,
+    exclusiveKeys: ReadonlyArray<string>,
+    required: boolean = false
+  ): E | void {
     // extract the keys with defined values (null included).
     // @ts-ignore generic object read
     const keys = Object.keys(object).filter((k: string) => (object[k] !== undefined));
