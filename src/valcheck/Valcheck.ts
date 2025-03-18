@@ -66,7 +66,7 @@ const TYPE_ARTICLES: TypeArticle = {
   number: 'a ',
   string: 'a ',
   function: 'a ',
-  bigint: ' a '
+  bigint: 'a '
 };
 
 const CSS_COLORS = [
