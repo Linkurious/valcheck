@@ -828,6 +828,7 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.type('value', undefined, 'undefined'));
     shouldSucceed(() => check.type('value', -102, 'number'));
     shouldSucceed(() => check.type('value', 12, 'number'));
+    shouldSucceed(() => check.type('value', 12n, 'bigint'));
     shouldSucceed(() => check.type('value', 12.5, 'number'));
     shouldSucceed(() => check.type('value', Infinity, 'number'));
     shouldSucceed(() => check.type('value', NaN, 'NaN'));
@@ -841,6 +842,10 @@ describe('Valcheck ', function() {
     shouldFail(
       () => check.type('value', 12, ['string', 'boolean']),
       '"value" type must be one of: "string", "boolean".'
+    );
+    shouldFail(
+      () => check.type('value', 12, 'bigint'),
+      '"value" must be a bigint.'
     );
     shouldFail(() => check.type('value', 12, []),
       'Library usage error: check.type: type array must have at least one type.'

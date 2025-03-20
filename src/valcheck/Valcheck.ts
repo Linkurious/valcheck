@@ -36,7 +36,7 @@ const DEFINITION_FIELDS = [
   'check'
 ];
 
-export type Type = 'null' | 'undefined' | 'array' | 'object' | 'number' | 'NaN' | 'boolean' | 'string' | 'function';
+export type Type = 'null' | 'undefined' | 'array' | 'object' | 'number' | 'NaN' | 'boolean' | 'string' | 'function' | 'bigint';
 
 export type TypeArticle = {[key in Type]: string};
 
@@ -65,7 +65,8 @@ const TYPE_ARTICLES: TypeArticle = {
   boolean: 'a ',
   number: 'a ',
   string: 'a ',
-  function: 'a '
+  function: 'a ',
+  bigint: 'a '
 };
 
 const CSS_COLORS = [
@@ -843,7 +844,7 @@ export class Valcheck<E> {
   }
 
   /**
-   * Check if value is an http(s) URL.
+   * Check if value is an HTTP(s) URL.
    *
    * @param {string} key
    * @param {*} value
@@ -896,7 +897,7 @@ export class Valcheck<E> {
    * Returns "null" for null, "array" for Arrays and 'NaN' for NaN.
    *
    * @param {*} value
-   * @returns {string} "null", "undefined", "array", "object", "number", "NaN", "boolean", "string", "function".
+   * @returns {string} "null", "undefined", "array", "object", "number", "bigint", "NaN", "boolean", "string", "function".
    */
   public getType(value: unknown): Type {
     if (value === null) { return 'null'; }
@@ -1017,7 +1018,7 @@ export class Valcheck<E> {
     const type = this.getType(value);
 
     if (type === 'string' && acceptIsoString) {
-      // check for wrong wrong ISO format
+      // check for wrong ISO format
       if (!ISO_DATE_RE.test(value as string)) {
         return this._error(key, 'must be a valid ISO date string');
       }
