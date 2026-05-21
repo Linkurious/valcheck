@@ -1,5 +1,5 @@
 {
-  "name": "valcheck",
+  "name": "@linkurious/valcheck",
   "description": "A JavaScript value checker for NodeJS",
   "repository": {
     "type": "git",
@@ -35,6 +35,9 @@
     "validation"
   ],
   "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=16.18"
   },
