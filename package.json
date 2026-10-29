@@ -51,7 +51,7 @@
     "build": "npm run build:lib && npm run build:test",
     "build:lib": "tsc",
     "build:test": "rm -rf ./test-build && tsc -p test",
-    "compile": "tsc -b",
+    "compile": "npm run build",
     "bump:patch": "bump2version patch && npm version --no-git-tag-version patch",
     "bump:minor": "bump2version minor && npm version --no-git-tag-version minor"
   },
