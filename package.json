@@ -39,7 +39,7 @@
     "access": "public"
   },
   "engines": {
-    "node": ">=16.18"
+    "node": ">=22"
   },
   "scripts": {
     "make": "npm run lint && npm run build && npm run test",
@@ -72,6 +72,6 @@
     "@types/node": "16.18.126",
     "nyc": "18.0.0",
     "tslint": "5.20.1",
-    "typescript": "7.0.2"
+    "typescript": "6.0.3"
   }
 }
