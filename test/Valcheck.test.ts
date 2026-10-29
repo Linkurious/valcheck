@@ -2,8 +2,8 @@
  * Created on 2016-04-20.
  */
 import { describe, it } from 'node:test';
-import assert = require('node:assert/strict');
-import path = require('path');
+import assert from 'node:assert/strict';
+import path from 'node:path';
 
 import { ValcheckNode as CheckNode, FieldDefinition} from '../src/node';
 import { Valcheck as Check } from '../src';
