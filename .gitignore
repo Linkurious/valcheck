@@ -22,6 +22,9 @@ jsdoc
 # nyc test coverage
 .nyc_output
 
+# CI reports (lint, unit tests)
+reports
+
 # Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
 .grunt
 
@@ -30,6 +33,7 @@ jsdoc
 
 # Compiled binary addons (http://nodejs.org/api/addons.html)
 lib/*
+test-build
 watch.out
 
 # Dependency directories

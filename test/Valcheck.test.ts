@@ -1,71 +1,52 @@
 /**
  * Created on 2016-04-20.
  */
-'use strict';
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+import path from 'node:path';
 
-const should = require('should/as-function');
-const describe = require('mocha/lib/mocha.js').describe;
-const it = require('mocha/lib/mocha.js').it;
-const path = require('path');
+import { ValcheckNode as CheckNode, FieldDefinition} from '../src/node';
+import { Valcheck as Check } from '../src';
 
-describe('Valcheck ', function() {
-  const CheckNode = require('../lib/node');
-  const Check = require('../lib');
+// tests are compiled to "<root>/test-build/test", resolve test fixtures from "<root>/test"
+const TEST_DIR = path.resolve(__dirname, '..', '..', 'test');
 
-  const check = new CheckNode(error => error);
-
-  /**
-   * @param {function} fn
-   * @param {string} errMessage The exact error message
-   */
-  function shouldFail(fn, errMessage) {
-    const er = fn();
-    //try { fn() } catch(e) { er = e; }
-    should.exist(er, 'Expected an error message');
-
-    //noinspection JSUnresolvedVariable
-    should(er).equal(errMessage);
-  }
+describe('Valcheck ', () => {
+  const check = new CheckNode((error: string) => error);
 
   /**
-   * @param {function} fn
+   * @param fn
+   * @param errMessage The exact error message
    */
-  function shouldSucceed(fn) {
+  function shouldFail(fn: () => string | void, errMessage: string): void {
     const er = fn();
-    //try { fn() } catch(e) { er = e; }
-    should.not.exist(er);
+    assert.ok(er !== undefined && er !== null, 'Expected an error message');
+    assert.equal(er, errMessage);
   }
 
-  it('Should throwing on error by default', function(done) {
-    let ex = {};
-    try {
-      const c = new Check();
-      c.number('n', 'abc');
-    } catch(e) {
-      ex = e;
-    }
-    should.exist(ex);
-    should(ex.message).equal('"n" must be a number.');
-    done();
+  function shouldSucceed(fn: () => string | void): void {
+    const er = fn();
+    assert.ok(er === undefined || er === null, `Expected no error, got: ${er}`);
+  }
+
+  it('Should throwing on error by default', () => {
+    const c = new Check();
+    assert.throws(() => c.number('n', 'abc'), {message: '"n" must be a number.'});
   });
 
-  it('Should allow custom bug handlers', function() {
-    let lastBug = undefined;
-    const cc = new Check(undefined, (bug) => lastBug = bug);
+  it('Should allow custom bug handlers', () => {
+    let lastBug: string | undefined = undefined;
+    const cc = new Check<string>(undefined, (bug) => lastBug = bug);
 
     // errors are still throwing (default behavior)
-    try {
-      cc.exist('test1', null);
-    } catch(e) {
-      should(e.message).equal('"test1" must not be null.');
-    }
+    assert.throws(() => cc.exist('test1', null), {message: '"test1" must not be null.'});
 
     // bugs are handled in a custom way here
     cc.values('test2', 'a', []);
-    should(lastBug).equal('Library usage error: values must be a non-empty array.');
+    assert.equal(lastBug, 'Library usage error: values must be a non-empty array.');
   });
 
-  it('Should check for null or undefined', function(done) {
+  it('Should check for null or undefined', () => {
     shouldFail(() => check.exist('exist', undefined), '"exist" must not be undefined.');
     shouldFail(() => check.exist('exist', null), '"exist" must not be null.');
 
@@ -79,12 +60,11 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.exist('exist', /a/));
     shouldSucceed(() => check.exist('exist', [1]));
     shouldSucceed(() => check.exist('exist', ['a']));
-    shouldSucceed(() => check.exist('exist', new Date));
+    shouldSucceed(() => check.exist('exist', new Date()));
     shouldSucceed(() => check.exist('exist', function() {}));
-    done();
   });
 
-  it('Should check numbers', function(done) {
+  it('Should check numbers', () => {
     const numberMsg = '"number" must be a number.';
     shouldFail(() => check.number('number', 'a'), numberMsg);
     shouldFail(() => check.number('number', undefined), numberMsg);
@@ -93,7 +73,7 @@ describe('Valcheck ', function() {
     shouldFail(() => check.number('number', [1, 2]), numberMsg);
     shouldFail(() => check.number('number', /ab/), numberMsg);
     shouldFail(() => check.number('number', '1'), numberMsg);
-    shouldFail(() => check.number('number', new Date), numberMsg);
+    shouldFail(() => check.number('number', new Date()), numberMsg);
     shouldFail(() => check.number('number', Number.NaN), numberMsg);
     shouldFail(() => check.number('number', NaN), numberMsg);
     shouldFail(() => check.number('number', function() {}), numberMsg);
@@ -115,10 +95,9 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.number('number', 12, 12, 12));
     shouldSucceed(() => check.number('number', 12, 11, 12));
     shouldSucceed(() => check.number('number', 12, 11, 13));
-    done();
   });
 
-  it('Should check positive integers', function(done) {
+  it('Should check positive integers', () => {
     const numberMsg = '"posInt" must be a number.';
     shouldFail(() => check.posInt('posInt', 'a'), numberMsg);
     shouldFail(() => check.posInt('posInt', /a/), numberMsg);
@@ -126,7 +105,7 @@ describe('Valcheck ', function() {
     shouldFail(() => check.posInt('posInt', [1]), numberMsg);
     shouldFail(() => check.posInt('posInt', [1, 2]), numberMsg);
     shouldFail(() => check.posInt('posInt', ['a']), numberMsg);
-    shouldFail(() => check.posInt('posInt', new Date), numberMsg);
+    shouldFail(() => check.posInt('posInt', new Date()), numberMsg);
     shouldFail(() => check.posInt('posInt', undefined), numberMsg);
     shouldFail(() => check.posInt('posInt', null), numberMsg);
     shouldFail(() => check.posInt('posInt', -1), '"posInt" must be positive.');
@@ -143,10 +122,9 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.posInt('posInt', 0));
     shouldSucceed(() => check.posInt('posInt', 1));
     shouldSucceed(() => check.posInt('posInt', 2));
-    done();
   });
 
-  it('Should check arrays', function(done) {
+  it('Should check arrays', () => {
     const msg = '"array" must be an array.';
     shouldFail(() => check.array('array', 'a'), msg);
     shouldFail(() => check.array('array', undefined), msg);
@@ -154,7 +132,7 @@ describe('Valcheck ', function() {
     shouldFail(() => check.array('array', /ab/), msg);
     shouldFail(() => check.array('array', '1'), msg);
     shouldFail(() => check.array('array', 1), msg);
-    shouldFail(() => check.array('array', new Date), msg);
+    shouldFail(() => check.array('array', new Date()), msg);
     shouldFail(() => check.array('array', Number.NaN), msg);
     shouldFail(() => check.array('array', NaN), msg);
 
@@ -165,21 +143,18 @@ describe('Valcheck ', function() {
     shouldFail(() => check.array('array', [1, 2], 0, 1), '"array" length must be between 0 and 1.');
     shouldFail(() => check.array('array', [1, 2], 3), '"array" length must be at least 3.');
     shouldSucceed(() => check.array('array', [1, 2], 2));
-    done();
   });
 
-  it('Should check enums', function(done) {
-    /// usage error
-    //noinspection JSCheckFunctionSignatures
-    shouldFail(() => check.values('enum', 'a', ''),
+  it('Should check enums', () => {
+    // usage error
+    shouldFail(() => check.values('enum', 'a', '' as never),
       'Library usage error: values must be a non-empty array.'
     );
     shouldFail(() => check.values('enum', 'a', []),
       'Library usage error: values must be a non-empty array.'
     );
 
-    shouldFail(() => check.values('enum', 'a', ['b', 'c']), '"enum" must be one of: "b", "c".'
-    );
+    shouldFail(() => check.values('enum', 'a', ['b', 'c']), '"enum" must be one of: "b", "c".');
     shouldFail(() => check.values('enum', 1, ['1', '2']), '"enum" must be one of: "1", "2".');
     shouldFail(() => check.values('enum', 1, ['1', '2'], true),
       '"enum" must be one of: "1", "2" (was 1).'
@@ -190,10 +165,9 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.values('enum', null, [1, null]));
     shouldSucceed(() => check.values('enum', undefined, ['a', undefined]));
     shouldSucceed(() => check.values('enum', Number.NaN, ['a', Number.NaN]));
-    done();
   });
 
-  it('Should check strings', function(done) {
+  it('Should check strings', () => {
     const msg = '"string" must be a string.';
     shouldFail(() => check.string('string', null), msg);
     shouldFail(() => check.string('string', undefined), msg);
@@ -201,7 +175,7 @@ describe('Valcheck ', function() {
     shouldFail(() => check.string('string', 1), msg);
     shouldFail(() => check.string('string', -1), msg);
     shouldFail(() => check.string('string', /ab/), msg);
-    shouldFail(() => check.string('string', new Date), msg);
+    shouldFail(() => check.string('string', new Date()), msg);
     shouldFail(() => check.string('string', []), msg);
     shouldFail(() => check.string('string', ['a']), msg);
     shouldFail(() => check.string('string', [1]), msg);
@@ -233,10 +207,9 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.string('string', '12', false, false, 1, 4));
     shouldSucceed(() => check.string('string', '123', false, false, 1, 4));
     shouldSucceed(() => check.string('string', '1234', false, false, 1, 4));
-    done();
   });
 
-  it('Should check non-empty strings', function(done) {
+  it('Should check non-empty strings', () => {
     shouldFail(() => check.nonEmpty('s', undefined), '"s" must be a string.');
     shouldFail(() => check.nonEmpty('s', null), '"s" must be a string.');
     shouldFail(() => check.nonEmpty('s', ''), '"s" must be a non-empty string.');
@@ -244,10 +217,9 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.nonEmpty('s', ' '));
     shouldSucceed(() => check.nonEmpty('s', '\n'));
     shouldSucceed(() => check.nonEmpty('s', '\t'));
-    done();
   });
 
-  it('Should check intArray', function(done) {
+  it('Should check intArray', () => {
     shouldFail(() => check.intArray('inta', 123), '"inta" must be an array.');
     shouldFail(() => check.intArray('inta', ['a']), '"inta[0]" must be a number.');
     shouldFail(() => check.intArray('inta', [1, 'b']), '"inta[1]" must be a number.');
@@ -259,10 +231,9 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.intArray('inta', [0, 1]));
     shouldSucceed(() => check.intArray('inta', [-0, 1]));
     shouldSucceed(() => check.intArray('inta', [-0, -1]));
-    done();
   });
 
-  it('Should check startsWith', done => {
+  it('Should check startsWith', () => {
     shouldSucceed(() => check.startsWith('ps', 'abcde', ''));
     shouldSucceed(() => check.startsWith('ps', 'abcde', 'a'));
     shouldSucceed(() => check.startsWith('ps', 'abcde', 'ab'));
@@ -278,10 +249,9 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.startsWith('ps', 'abc', 'abc', false));
     shouldFail(() => check.startsWith('ps', '', ''), '"ps" must be longer than "".');
     shouldSucceed(() => check.startsWith('ps', '', '', false));
-    done();
   });
 
-  it('Should check hexColors', done => {
+  it('Should check hexColors', () => {
     shouldSucceed(() => check.hexColor('hex', '#abcdef'));
     shouldSucceed(() => check.hexColor('hex', '#aabbcc'));
     shouldSucceed(() => check.hexColor('hex', '#111111'));
@@ -319,10 +289,9 @@ describe('Valcheck ', function() {
     shouldFail(() => check.hexColor('hex', '#fffffz', false), msg2);
     shouldFail(() => check.hexColor('hex', '#000', false), msg2);
     shouldFail(() => check.hexColor('hex', '#000', false), msg2);
-    done();
   });
 
-  it('Should check rgb/rgba colors', done => {
+  it('Should check rgb/rgba colors', () => {
     shouldSucceed(() => check.rgbColor('color', 'rgb(0,0,0)'));
     shouldSucceed(() => check.rgbColor('color', 'rgb(255,22,0)'));
     shouldSucceed(() => check.rgbColor('color', 'rgb(255,255,255)'));
@@ -372,10 +341,9 @@ describe('Valcheck ', function() {
     shouldFail(() => check.rgbColor('color', 'rgba( 0 , 0 , 0, 1.0)'), msg);
     shouldFail(() => check.rgbColor('color', 'rgba( 0 , 0 , 0, 1.9)'), msg);
     shouldFail(() => check.rgbColor('color', 'rgba( 0 , 0 , 0, 99.0)'), msg);
-    done();
   });
 
-  it('Should check CSS colors', done => {
+  it('Should check CSS colors', () => {
     shouldSucceed(() => check.cssColor('color', 'yellow'));
     shouldSucceed(() => check.cssColor('color', 'red'));
     shouldSucceed(() => check.cssColor('color', 'green'));
@@ -431,10 +399,9 @@ describe('Valcheck ', function() {
     shouldFail(() => check.cssColor('color', '#0'), msg);
     shouldFail(() => check.cssColor('color', '#00'), msg);
     shouldFail(() => check.cssColor('color', '#ff'), msg);
-    done();
   });
 
-  it('Should check nulls', function(done) {
+  it('Should check nulls', () => {
     const msg = '"null" must be null.';
     shouldFail(() => check.null('null', undefined), msg);
     shouldFail(() => check.null('null', 'null'), msg);
@@ -444,10 +411,9 @@ describe('Valcheck ', function() {
     shouldFail(() => check.null('null', new Date(123)), msg);
 
     shouldSucceed(() => check.null('null value', null));
-    done();
   });
 
-  it('Should check objects', function(done) {
+  it('Should check objects', () => {
     const msg = '"object" must be an object.';
     shouldFail(() => check.object('object', undefined), msg);
     shouldFail(() => check.object('object', null), msg);
@@ -458,10 +424,9 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.object('object', {}));
     shouldSucceed(() => check.object('object', new Date()));
     shouldSucceed(() => check.object('object', new RegExp('123')));
-    done();
   });
 
-  it('Should check stringArrays', function(done) {
+  it('Should check stringArrays', () => {
     const msg = '"sa" must be an array.';
     shouldFail(() => check.stringArray('sa', null), msg);
     shouldFail(() => check.stringArray('sa', undefined), msg);
@@ -484,9 +449,9 @@ describe('Valcheck ', function() {
       '"sa[1]" must be a non-empty string.'
     );
 
-    //noinspection JSPrimitiveTypeWrapperUsage
+    // eslint-disable-next-line @typescript-eslint/no-array-constructor
     shouldSucceed(() => check.stringArray('sa', new Array()));
-    //noinspection JSPrimitiveTypeWrapperUsage
+    // eslint-disable-next-line @typescript-eslint/no-array-constructor
     shouldSucceed(() => check.stringArray('sa', new Array('a', 'b')));
     shouldSucceed(() => check.stringArray('sa', []));
     shouldSucceed(() => check.stringArray('sa', [], 0));
@@ -503,10 +468,9 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.stringArray('sa', ['a', 'b'], 0, 2));
     shouldSucceed(() => check.stringArray('sa', ['a', 'b'], undefined, 2));
     shouldSucceed(() => check.stringArray('sa', ['a', 'b'], 2, 2, true));
-    done();
   });
 
-  it('Should check legal values', function(done) {
+  it('Should check legal values', () => {
     shouldFail(() => check.values('value', undefined, [1]), '"value" must be 1.');
     shouldFail(() => check.values('value', 2, [1, 3]), '"value" must be one of: 1, 3.');
     shouldFail(() => check.values('value', true, [1, 3]), '"value" must be one of: 1, 3.');
@@ -524,15 +488,14 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.values('value', 3, [1, 2, 3]));
     shouldSucceed(() => check.values('value', null, [null]));
     shouldSucceed(() => check.values('value', NaN, [1, 2, NaN]));
-    done();
   });
 
-  it('Should check object keys', function(done) {
+  it('Should check object keys', () => {
     const objMsg = '"object" must be an object.';
     shouldFail(() => check.objectKeys('object', [], []), objMsg);
-    shouldFail(() => check.objectKeys('object', 1, []), objMsg);
-    shouldFail(() => check.objectKeys('object', null, []), objMsg);
-    shouldFail(() => check.objectKeys('object', undefined, []), objMsg);
+    shouldFail(() => check.objectKeys('object', 1 as never, []), objMsg);
+    shouldFail(() => check.objectKeys('object', null as never, []), objMsg);
+    shouldFail(() => check.objectKeys('object', undefined as never, []), objMsg);
     shouldFail(() => check.objectKeys('object', new Date(), [], ['getTime']),
       '"object" misses mandatory properties ("getTime").'
     );
@@ -554,21 +517,19 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.objectKeys('object', {a: 1, b: 2}, ['a', 'b'], ['a']));
     shouldSucceed(() => check.objectKeys('object', {a: 1, b: 2}, ['a', 'b'], true));
 
-    shouldSucceed(() => check.objectKeys('object', {a: 1}, null, null, ['']));
-    shouldFail(() => check.objectKeys('object', {'': 1}, null, null, ['']),
+    shouldSucceed(() => check.objectKeys('object', {a: 1}, null as never, null as never, ['']));
+    shouldFail(() => check.objectKeys('object', {'': 1}, null as never, null as never, ['']),
       '"object" has forbidden properties ("").'
     );
-
-    done();
   });
 
-  it('Should check object properties', function(done) {
+  it('Should check object properties', () => {
     // no checks, no properties
     shouldSucceed(() => check.properties('object', {}, {}));
 
     // wrong object
     shouldFail(
-      () => check.properties('object', 123, {foo: {required: true}}),
+      () => check.properties('object', 123 as never, {foo: {required: true}}),
       '"object" must be an object.'
     );
 
@@ -581,7 +542,7 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.properties('object', {}, {foo: {type: 'number'}}));
 
     // requiredUnless
-    let props = {foo: {requiredUnless: 'bar'}, bar: {}};
+    let props: Record<string, FieldDefinition<string>> = {foo: {requiredUnless: 'bar'}, bar: {}};
     shouldFail(
       () => check.properties('object', {}, props),
       '"object.foo" must not be undefined.'
@@ -699,29 +660,27 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.properties('object', {foo: 123}, {foo: {check: ['integer']}}));
     shouldSucceed(() => check.properties('object', {foo: 123}, {foo: {check: 'integer'}}));
     shouldFail(
-      () => check.properties('object',  {foo: 123}, {foo: {check: 123}}),
+      () => check.properties('object',  {foo: 123}, {foo: {check: 123 as never}}),
       'Library usage error: "definition.check" must be an array or a function.'
     );
     shouldFail(
-      () => check.properties('object',  {foo: 123}, {foo: {check: []}}),
+      () => check.properties('object',  {foo: 123}, {foo: {check: [] as never}}),
       'Library usage error: "definition.check[0]" must be a function name.'
     );
     shouldFail(
-      () => check.properties('object',  {foo: 123}, {foo: {check: ['lol']}}),
+      () => check.properties('object',  {foo: 123}, {foo: {check: ['lol'] as never}}),
       'Library usage error: "definition.check[0]" (lol) must be a valid Check function name.'
     );
     shouldFail(
       () => check.properties('object',  {foo: 123}, {foo: {check: ['integer', 124]}}),
       '"object.foo" must be at least 124.'
     );
-
-    done();
   });
 
-  it('Should check a single property', function(done) {
+  it('Should check a single property', () => {
     // unexpected property field
     shouldFail(
-      () => check.property('property', {}, {required: true, bla: 1, foo: 'bar'}),
+      () => check.property('property', {}, {required: true, bla: 1, foo: 'bar'} as never),
       'Library usage error: "definition" has unexpected properties: "bla", "foo".'
     );
 
@@ -807,21 +766,18 @@ describe('Valcheck ', function() {
       () => check.property('property', [2, '3', 456], {arraySize: 2}),
       '"property" length must be 2.'
     );
-
-    done();
   });
 
-  it('Should check a string with a regexp', function(done) {
+  it('Should check a string with a regexp', () => {
     shouldSucceed(() => check.regexp('string', '123', /^\d+$/));
     shouldFail(() => check.regexp('string', 123, /\d/), '"string" must be a string.');
     shouldFail(() => check.regexp('string', 'abc', /\d/), '"string" must match pattern /\\d/.');
     shouldFail(
       () => check.regexp('string', 'abc', /a\d/i), '"string" must match pattern /a\\d/i.'
     );
-    done();
   });
 
-  it('Should check values types', function(done) {
+  it('Should check values types', () => {
     shouldSucceed(() => check.type('value', true, 'boolean'));
     shouldSucceed(() => check.type('value', false, 'boolean'));
     shouldSucceed(() => check.type('value', null, 'null'));
@@ -850,14 +806,12 @@ describe('Valcheck ', function() {
     shouldFail(() => check.type('value', 12, []),
       'Library usage error: check.type: type array must have at least one type.'
     );
-    shouldFail(() => check.type('value', 12, undefined),
+    shouldFail(() => check.type('value', 12, undefined as never),
       'Library usage error: check.type: type array must have at least one type.'
     );
-
-    done();
   });
 
-  it('Should check booleans', function(done) {
+  it('Should check booleans', () => {
     shouldSucceed(() => check.boolean('bool', true));
     shouldSucceed(() => check.boolean('bool', false));
     shouldSucceed(() => check.boolean('bool', undefined, true));
@@ -870,11 +824,9 @@ describe('Valcheck ', function() {
       () => check.boolean('bool', null, true),
       '"bool" type must be one of: "boolean", "undefined".'
     );
-
-    done();
   });
 
-  it('Should check exclusive object keys', function(done) {
+  it('Should check exclusive object keys', () => {
     shouldSucceed(() => check.exclusive('obj', {a: 1, b: 2}, ['x', 'y']));
     shouldSucceed(() => check.exclusive('obj', {a: 1, b: 2}, ['b', 'c']));
     shouldFail(
@@ -893,11 +845,9 @@ describe('Valcheck ', function() {
       () => check.exclusive('obj', {a: undefined}, ['a', 'b'], true),
       '"obj" must have one of these properties set: "a", "b".'
     );
-
-    done();
   });
 
-  it('Should check functions', function(done) {
+  it('Should check functions', () => {
     shouldSucceed(() => check.function('func', function() {}));
     shouldSucceed(() => check.function('func', () => 1));
     shouldSucceed(() => check.function('func', () => {}));
@@ -907,11 +857,9 @@ describe('Valcheck ', function() {
     shouldFail(() => check.function('func', undefined), '"func" must be a function.');
     shouldFail(() => check.function('func', 123), '"func" must be a function.');
     shouldFail(() => check.function('func', new Date()), '"func" must be a function.');
-
-    done();
   });
 
-  it('Should check URLs', function(done) {
+  it('Should check URLs', () => {
     shouldSucceed(() => check.url('url', 'http://google.com'));
     shouldSucceed(() => check.url('url', 'http://google.com/'));
     shouldSucceed(() => check.url('url', 'http://google.com/lol.html'));
@@ -925,8 +873,8 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.httpUrl('url', 'http://google.com'));
     shouldSucceed(() => check.httpUrl('url', 'https://google.com'));
     shouldSucceed(() => check.httpUrl('url', 'http://localhost:7474'));
-    shouldSucceed(() => check.httpUrl('url', 'http://localhost:7474', 'http'));
-    shouldSucceed(() => check.httpUrl('url', 'https://localhost:7474', 'http'));
+    shouldSucceed(() => check.url('url', 'http://localhost:7474', 'http'));
+    shouldSucceed(() => check.url('url', 'https://localhost:7474', 'http'));
     shouldSucceed(() => check.url('url', 'Http://google.com', 'http'));
     shouldSucceed(() => check.url('url', 'Https://google.com', 'http'));
     shouldSucceed(() => check.url('url', 'ws://google.com', 'ws'));
@@ -1017,11 +965,9 @@ describe('Valcheck ', function() {
       () => check.url('url', 'bolt+scc://free.fr', ['bolt', 'bolt+s']),
       '"url" must be a valid URL (starting with either: bolt://, bolt+s://).'
     );
-
-    done();
   });
 
-  it('Should check ports', function(done) {
+  it('Should check ports', () => {
     shouldSucceed(() => check.port('port', 123));
     shouldSucceed(() => check.port('port', 3000));
     shouldSucceed(() => check.port('port', 8080));
@@ -1032,11 +978,9 @@ describe('Valcheck ', function() {
     shouldFail(() => check.port('port', 12.5), '"port" must be an integer.');
     shouldFail(() => check.port('port', 10), '"port" must be between 11 and 65535.');
     shouldFail(() => check.port('port', 65536), '"port" must be between 11 and 65535.');
-
-    done();
   });
 
-  it('Should check files', function(done) {
+  it('Should check files', () => {
     shouldFail(() => check.file('file', 123), '"file" must be a string.');
     shouldFail(() => check.file('file', ''), '"file" must be a non-empty string.');
     shouldFail(
@@ -1044,18 +988,17 @@ describe('Valcheck ', function() {
       '"file" must be an existing/readable file (./lolilol_not_a_file).'
     );
     shouldFail(
-      () => check.file('file', __dirname), `"file" must be a file (${__dirname}).`
+      () => check.file('file', TEST_DIR), `"file" must be a file (${TEST_DIR}).`
     );
     shouldFail(
       () => check.file('file', 'testFile.txt'),
       '"file" must be an existing/readable file (testFile.txt).'
     );
-    shouldSucceed(() => check.file('file', 'testFile.txt', path.resolve(__dirname, 'testDir')));
+    shouldSucceed(() => check.file('file', 'testFile.txt', path.resolve(TEST_DIR, 'testDir')));
     shouldSucceed(() => check.file('file', __filename));
-    done();
   });
 
-  it('Should check directories', function() {
+  it('Should check directories', () => {
     shouldFail(() => check.dir('dir', 123), '"dir" must be a string.');
 
     shouldFail(
@@ -1065,14 +1008,14 @@ describe('Valcheck ', function() {
     shouldFail(
       () => check.dir('dir', __filename), `"dir" must be a directory (${__filename}).`
     );
-    shouldSucceed(() => check.dir('dir', __dirname));
-    shouldSucceed(() => check.dir('dir', 'testDir', __dirname));
+    shouldSucceed(() => check.dir('dir', TEST_DIR));
+    shouldSucceed(() => check.dir('dir', 'testDir', TEST_DIR));
     shouldFail(
       () => check.dir('dir', 'testDir'), `"dir" must be an existing/readable directory (testDir).`
     );
   });
 
-  it('Should check date (native)', function(done) {
+  it('Should check date (native)', () => {
     shouldSucceed(() => check.date('date', new Date()));
     shouldSucceed(() => check.date('date', new Date(0)));
     shouldSucceed(() => check.date('date', new Date('2016-06-09T12:14:25.078Z')));
@@ -1082,11 +1025,9 @@ describe('Valcheck ', function() {
     shouldFail(() => check.date('date', ''), '"date" must be a valid date.');
     shouldFail(() => check.date('date', 1), '"date" must be a valid date.');
     shouldFail(() => check.date('date', new Date('')), '"date" must be a valid date.');
-
-    done();
   });
 
-  it('Should check date (iso string)', function(done) {
+  it('Should check date (iso string)', () => {
     shouldSucceed(() => check.date('date', '2016-06-09T12:14:25.078Z', true)); // utc zero
     shouldSucceed(() => check.date('date', '2016-06-09T12:14:25.078+03:00', true)); // positive utc offset
     shouldSucceed(() => check.date('date', '2016-06-09T12:14:25.078-11:30', true)); // negative utc offset
@@ -1095,17 +1036,18 @@ describe('Valcheck ', function() {
     shouldSucceed(() => check.date('date', '9999-01-01T21:14:25-11:30', true)); // year 9999
     shouldSucceed(() => check.date('date', '0931-01-01T22:14:25-11:30', true)); // 3 digits year
 
+    const msg = '"date" must be a valid ISO date string.';
     // no tz
-    shouldFail(() => check.date('date', '2016-06-09T12:14:25', true), '"date" must be a valid ISO date string.');
+    shouldFail(() => check.date('date', '2016-06-09T12:14:25', true), msg);
     // rz offset >= 24
-    shouldFail(() => check.date('date', '2016-06-09T12:14:25+25:00', true), '"date" must be a valid ISO date string.');
-    shouldFail(() => check.date('date', '2016-06-09T12:14:25-25:00', true), '"date" must be a valid ISO date string.');
+    shouldFail(() => check.date('date', '2016-06-09T12:14:25+25:00', true), msg);
+    shouldFail(() => check.date('date', '2016-06-09T12:14:25-25:00', true), msg);
     // month at zero
-    shouldFail(() => check.date('date', '2016-00-09T12:14:25+03:00', true), '"date" must be a valid ISO date string.');
+    shouldFail(() => check.date('date', '2016-00-09T12:14:25+03:00', true), msg);
     // day at zero
-    shouldFail(() => check.date('date', '2016-01-00T12:14:25+03:00', true), '"date" must be a valid ISO date string.');
-
-    done();
+    shouldFail(() => check.date('date', '2016-01-00T12:14:25+03:00', true), msg);
   });
 
 });
+
+

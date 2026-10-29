@@ -3,13 +3,13 @@ A NodeJS value checker.
 
 
 ## Development
-- run tests: `npm run test` (uses Mocha)
-<!-- - generate coverage report: `npm run coverage` (uses istanbul) -->
-<!-- - generate API documentation `npm run doc` (uses JSDoc) -->
-- run code style checker: `npm run lint` (uses TSLint)
+- run tests: `npm run test` (TypeScript tests in `test/`, run with the native Node.js test runner, requires Node.js >= 22)
+- run code style checker: `npm run lint` (uses ESLint with typescript-eslint, see `eslint.config.mjs`)
+- build: `npm run build` (compiles with TypeScript 7, installed as the `typescript7` alias; the `typescript` package
+  stays on 6.x because typescript-eslint needs its JavaScript API, which TypeScript 7 does not provide)
 
 ## Versioning and publishing
-Versioning is handled by bump2version.
+Versioning is handled by `bump2version`.
 Publishing is handled by the ci.
 
 ## Installation
