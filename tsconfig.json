@@ -1,12 +1,14 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "module": "node16",
+    "moduleResolution": "node16",
+    "rootDir": "src",
+    "types": ["node"],
     "removeComments": false,
     "preserveConstEnums": true,
     "sourceMap": true,
     "declaration": true,
-    "target": "es5",
+    "target": "es2021",
     "allowJs": false,
     "outDir": "lib",
     "emitDecoratorMetadata": true,

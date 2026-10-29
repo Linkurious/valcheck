@@ -4,6 +4,7 @@ import fs = require('fs');
 import path = require('path');
 
 import { Valcheck } from './Valcheck';
+export { FieldPolicy, Type, FieldDefinition } from './Valcheck';
 
 export class ValcheckNode<E> extends Valcheck<E> {
 

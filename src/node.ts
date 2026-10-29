@@ -1,2 +1,1 @@
-import {ValcheckNode} from './valcheck/ValcheckNode';
-export = ValcheckNode;
+export * from './valcheck/ValcheckNode';
