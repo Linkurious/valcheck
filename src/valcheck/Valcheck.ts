@@ -8,7 +8,8 @@ import difference = require('lodash.difference');
  */
 import intersection = require('lodash.intersection');
 
-export type Type = 'null' | 'undefined' | 'array' | 'object' | 'number' | 'NaN' | 'boolean' | 'string' | 'function' | 'bigint';
+export type Type =
+  'null' | 'undefined' | 'array' | 'object' | 'number' | 'NaN' | 'boolean' | 'string' | 'function' | 'bigint';
 
 export type FieldPolicy = 'strict' | 'strictExist' | 'inclusive';
 
@@ -52,9 +53,9 @@ export interface FieldDefinition<E> {
 
 const HEX6_COLOR_RE = /^#[a-fA-F0-9]{6}$/;
 const HEX3_COLOR_RE = /^#[a-fA-F0-9]{3}$/;
-// tslint:disable-next-line:max-line-length
+// eslint-disable-next-line @stylistic/max-len
 const RGB_COLOR_RE = /^rgb\(\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*,\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*,\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*\)$/i;
-// tslint:disable-next-line:max-line-length
+// eslint-disable-next-line @stylistic/max-len
 const RGBA_COLOR_RE = /^rgba\(\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*,\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*,\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*,\s*(?:0|1|0?\.\d+)\s*\)$/i;
 const URL_RE = /^([a-zA-Z][a-zA-Z0-9+\-.]+):\/\/([^/\s:]+)(:\d+)?(\/[^\s]*)?$/i;
 const HTTP_URL_RE = /^(https?):\/\/([^/\s:]+)(:\d+)?(\/[^\s]*)?$/i;
@@ -553,7 +554,7 @@ export class Valcheck<E> {
    * @private
    */
   private static _array2string(list: ReadonlyArray<unknown>): string {
-    return list.map(v => v === undefined ? 'undefined' : JSON.stringify(v)).join(', ');
+    return list.map((v) => v === undefined ? 'undefined' : JSON.stringify(v)).join(', ');
   }
 
   /**
@@ -715,14 +716,14 @@ export class Valcheck<E> {
         const fName = definition.check.length ? definition.check[0] : undefined;
         if (typeof fName !== 'string') {
           return this._bug('"definition.check[0]" must be a function name');
-          // @ts-ignore
+          // @ts-ignore dynamic method lookup
         } else if (typeof this[fName] !== 'function') {
           return this._bug(`"definition.check[0]" (${fName}) must be a valid Check function name`);
         }
         // @ts-ignore "check" is an array, the first entry is a function name, the rest is parameters
         const args = [key, value].concat(definition.check.slice(1));
-        // @ts-ignore calling
-        if ((error = this[fName].apply(this, args))) { return error; }
+        // @ts-ignore dynamic function calling
+        if ((error = this[fName](...args))) { return error; }
       } else if (t === 'function') {
         // @ts-ignore "check" is a function that takes (key, value, parent) as parameters
         if ((error = definition.check(key, value, parent))) { return error; }
@@ -775,7 +776,7 @@ export class Valcheck<E> {
 
       if ((error = this.type(key, value, 'array'))) { return error; }
       // @ts-ignore using value as an array
-      for (let i = 0, l = value.length, item = value[0]; i < l; item = value[++i]) {
+      for (let i = 0, l = value.length; i < l; ++i) {
         // @ts-ignore using value as an array
         if ((error = this.property(`${key}[${i}]`, value[i], definition.arrayItem, value))) {
           return error;
@@ -826,14 +827,14 @@ export class Valcheck<E> {
     } else {
       const prefix = typeof scheme === 'string'
         ? Valcheck._escapeRegExp(scheme)
-        : scheme.map(s => Valcheck._escapeRegExp(s)).join('|');
+        : scheme.map((s) => Valcheck._escapeRegExp(s)).join('|');
       re = new RegExp(`^(${prefix})://([^/\\s:]+)(:\\d+)?(/[^\\s]*)?$`, 'i');
     }
 
     if (!re.test(value as string)) {
       let sScheme = '';
       if (Array.isArray(scheme)) {
-        sScheme = ` (starting with either: ${scheme.map(s => `${s}://`).join(', ')})`;
+        sScheme = ` (starting with either: ${scheme.map((s) => `${s}://`).join(', ')})`;
       } else if (typeof scheme === 'string') {
         sScheme = ` (starting with ${scheme}://)`;
       }
@@ -1045,7 +1046,7 @@ export class Valcheck<E> {
    * @private
    */
   private static _escapeRegExp(str: string): string {
-    return str.replace(/[\-\[\]\/{}()*+?.\\^$|]/g, '\\$&');
+    return str.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&');
   }
 
   private static _isNaN(n: unknown): boolean {
