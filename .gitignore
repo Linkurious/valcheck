@@ -30,6 +30,7 @@ jsdoc
 
 # Compiled binary addons (http://nodejs.org/api/addons.html)
 lib/*
+test-build
 watch.out
 
 # Dependency directories

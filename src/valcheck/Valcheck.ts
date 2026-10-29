@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * @type {function(Array, Array):Array}
  */
@@ -9,6 +7,48 @@ import difference = require('lodash.difference');
  * @type {function(Array, Array):Array}
  */
 import intersection = require('lodash.intersection');
+
+export type Type = 'null' | 'undefined' | 'array' | 'object' | 'number' | 'NaN' | 'boolean' | 'string' | 'function' | 'bigint';
+
+export type FieldPolicy = 'strict' | 'strictExist' | 'inclusive';
+
+/**
+ * @typedef {object} FieldDefinition
+ * @property {boolean|undefined} required Whether the property is required.
+ * @property {string|undefined} requiredUnless The property will be required unless another property called `requiredUnless` exists at the same level.
+ * @property {string|undefined} requiredIf The property will be required if another property called `requiredIf` exists at the same level.
+ * @property {string|undefined} deprecated Whether the property is deprecated (if defined), and for which reason.
+ * @property {Array<*>|undefined} values List of allowed values for the property.
+ * @property {string|string[]|undefined} type The allowed type(s) of the property.
+ * @property {function|string|Array<*>|undefined} check Called with `value` and `key` for specific property validation.
+ * @property {FieldDefinition|undefined} arrayItem Validate array items (forces `type` to "array").
+ * @property {number|undefined} arraySize Validate array size (forces `type` to "array").
+ * @property {FieldDefinition|undefined} anyProperty Validate any nested properties (forces `type` to "object").
+ * @property {object.<string, FieldDefinition>|undefined} properties Validate listed nested properties (forces `type` to "object").
+ * @property {string|undefined} policy When using `properties`, whether the properties are:
+ *                                                - "strict" (default): Only described properties are allowed.
+ *                                                - "strictExist": Only described properties are allowed, at least one must be present.
+ *                                                - "inclusive": Non-described properties are allowed.
+ */
+export interface FieldDefinition<E> {
+  required?: boolean;
+  requiredUnless?: string;
+  requiredIf?: string;
+  deprecated?: string;
+  values?: ReadonlyArray<unknown>;
+  type?: Type | ReadonlyArray<Type>;
+  check?:
+      ((key: string, value: unknown, parent?: object) => (E | void))
+      | [keyof Valcheck<E>, ...unknown[]]
+      | keyof Valcheck<E>;
+  arrayItem?: FieldDefinition<E>;
+  arraySize?: number;
+  anyProperty?: FieldDefinition<E>;
+  properties?: {
+    [key: string]: FieldDefinition<E>;
+  };
+  policy?: FieldPolicy;
+}
 
 const HEX6_COLOR_RE = /^#[a-fA-F0-9]{6}$/;
 const HEX3_COLOR_RE = /^#[a-fA-F0-9]{3}$/;
@@ -36,11 +76,7 @@ const DEFINITION_FIELDS = [
   'check'
 ];
 
-export type Type = 'null' | 'undefined' | 'array' | 'object' | 'number' | 'NaN' | 'boolean' | 'string' | 'function' | 'bigint';
-
-export type TypeArticle = {[key in Type]: string};
-
-export type FieldPolicy = 'strict' | 'strictExist' | 'inclusive';
+type TypeArticle = {[key in Type]: string};
 
 /**
  * A validation error handler
@@ -91,44 +127,6 @@ const CSS_COLORS = [
   'tan', 'teal', 'thistle', 'tomato', 'turquoise', 'violet', 'wheat', 'white', 'whitesmoke', 'yellow',
   'yellowgreen'
 ];
-
-/**
- * @typedef {object} FieldDefinition
- * @property {boolean|undefined} required Whether the property is required.
- * @property {string|undefined} requiredUnless The property will be required unless another property called `requiredUnless` exists at the same level.
- * @property {string|undefined} requiredIf The property will be required if another property called `requiredIf` exists at the same level.
- * @property {string|undefined} deprecated Whether the property is deprecated (if defined), and for which reason.
- * @property {Array<*>|undefined} values List of allowed values for the property.
- * @property {string|string[]|undefined} type The allowed type(s) of the property.
- * @property {function|string|Array<*>|undefined} check Called with `value` and `key` for specific property validation.
- * @property {FieldDefinition|undefined} arrayItem Validate array items (forces `type` to "array").
- * @property {number|undefined} arraySize Validate array size (forces `type` to "array").
- * @property {FieldDefinition|undefined} anyProperty Validate any nested properties (forces `type` to "object").
- * @property {object.<string, FieldDefinition>|undefined} properties Validate listed nested properties (forces `type` to "object").
- * @property {string|undefined} policy When using `properties`, whether the properties are:
- *                                                - "strict" (default): Only described properties are allowed.
- *                                                - "strictExist": Only described properties are allowed, at least one must be present.
- *                                                - "inclusive": Non-described properties are allowed.
- */
-export interface FieldDefinition<E> {
-  required?: boolean;
-  requiredUnless?: string;
-  requiredIf?: string;
-  deprecated?: string;
-  values?: ReadonlyArray<unknown>;
-  type?: Type | ReadonlyArray<Type>;
-  check?:
-    ((key: string, value: unknown, parent?: object) => (E | void))
-    | [keyof Valcheck<E>, ...unknown[]]
-    | keyof Valcheck<E>;
-  arrayItem?: FieldDefinition<E>;
-  arraySize?: number;
-  anyProperty?: FieldDefinition<E>;
-  properties?: {
-    [key: string]: FieldDefinition<E>;
-  };
-  policy?: FieldPolicy;
-}
 
 /**
  * @class Valcheck
@@ -1014,7 +1012,7 @@ export class Valcheck<E> {
    *
    * @returns {*} error, if any
    */
-  public date(key: string, value: unknown, acceptIsoString: boolean): E | void {
+  public date(key: string, value: unknown, acceptIsoString: boolean = false): E | void {
     const type = this.getType(value);
 
     if (type === 'string' && acceptIsoString) {

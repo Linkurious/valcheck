@@ -1,2 +1,1 @@
-import {Valcheck} from './valcheck/Valcheck';
-export = Valcheck;
+export * from './valcheck/Valcheck';
