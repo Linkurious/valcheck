@@ -26,7 +26,7 @@ export class ValcheckNode<E> extends Valcheck<E> {
         value = path.resolve(rootPath, value as string);
       }
       stat = fs.statSync(value as string);
-    } catch (e) {
+    } catch {
       return this._error(key, `must be an existing/readable file (${value})`);
     }
     if (!stat.isFile()) {
@@ -52,7 +52,7 @@ export class ValcheckNode<E> extends Valcheck<E> {
         value = path.resolve(rootPath, value as string);
       }
       stat = fs.statSync(value as string);
-    } catch (e) {
+    } catch {
       return this._error(key, `must be an existing/readable directory (${value})`);
     }
     if (!stat.isDirectory()) {

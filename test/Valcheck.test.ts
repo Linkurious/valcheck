@@ -449,9 +449,9 @@ describe('Valcheck ', () => {
       '"sa[1]" must be a non-empty string.'
     );
 
-    // tslint:disable-next-line:prefer-array-literal
+    // eslint-disable-next-line @typescript-eslint/no-array-constructor
     shouldSucceed(() => check.stringArray('sa', new Array()));
-    // tslint:disable-next-line:prefer-array-literal
+    // eslint-disable-next-line @typescript-eslint/no-array-constructor
     shouldSucceed(() => check.stringArray('sa', new Array('a', 'b')));
     shouldSucceed(() => check.stringArray('sa', []));
     shouldSucceed(() => check.stringArray('sa', [], 0));
